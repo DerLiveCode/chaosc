@@ -25,15 +25,13 @@ from multiprocessing import Pool
 from simpleOSCServer import SimpleOSCServer
 
 try:
-    from c_osc_lib import OSCMessage, encode_osc
+    from c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage, encode_osc
+    from osc_lib  import OSCMessage
 
 
 
 def main():
-    client = SimpleOSCServer(("0.0.0.0", 7777))
-
     parser = argparse.ArgumentParser(prog='chaosc_cli')
     parser.add_argument("-H", '--chaosc_host', required=True,
         type=str, help='host of chaosc instance to control')
@@ -64,6 +62,8 @@ def main():
         parser.print_help()
         sys.exit(0)
     result = parser.parse_args(sys.argv[1:])
+
+    client = SimpleOSCServer(("", 7777))
 
     if "unsubscribe" == result.subparser_name:
         msg = OSCMessage("/unsubscribe")
