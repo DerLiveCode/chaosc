@@ -426,8 +426,8 @@ args
 response
     No response is send by chaosc_filter
 
-forward
--------
+back
+----
 
 makes chaosc_filter to activate filters for the previous scene id.
 
