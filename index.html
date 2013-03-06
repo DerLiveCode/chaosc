@@ -1,0 +1,1714 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Chaosc’s documentation! &mdash; chaosc 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="chaosc 0.1 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">chaosc 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-chaosc-s-documentation">
+<h1>Welcome to Chaosc&#8217;s documentation!<a class="headerlink" href="#welcome-to-chaosc-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="licenses">
+<h2>Licenses<a class="headerlink" href="#licenses" title="Permalink to this headline">¶</a></h2>
+<p>This documentation is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License.</p>
+<p>Chaosc is licensed under the GPL-3.</p>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The chaosc framework was developed for a theatre project called &#8220;Der Live-Code&#8221;.
+It consists of several tools and a custom OSC library.</p>
+<p>Chaosc itself is a osc hub/proxy, which takes osc messages and delivers them
+to subscribed receivers via UDP, written with two goals in mind.</p>
+<ul class="simple">
+<li>speed and low forwarding jitter</li>
+<li>easy to use</li>
+</ul>
+<p>For the sake of speed, we&#8217;ve completely rewritten the OSC.py lib. The usage is more streamlined,
+but also more error prone for using false type-tagged data in arguments,
+little type checking is done here. So devs working with the code are on their
+own to use the osc classes sanely, but it&#8217;s bleeding fast. There is a
+version written with cython for c level speed, and a fall-back pure python library.
+Below we&#8217;ll prove, that it&#8217;s also easy to use.</p>
+<p>For now it supports the OSC 1.0 spec, and is optimized for UDP only. TCP is not supported.
+Chaosc runs in dualstack mode which have to be ironed out a bit more.</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="tools-overview">
+<h1>Tools overview<a class="headerlink" href="#tools-overview" title="Permalink to this headline">¶</a></h1>
+<p>chaosc</p>
+<blockquote>
+<div>The multi unicast osc proxy</div></blockquote>
+<p>chaosc_ctl</p>
+<blockquote>
+<div>command line tool to control chaosc</div></blockquote>
+<p>chaosc_ts</p>
+<blockquote>
+<div>test script to create n parallel osc senders</div></blockquote>
+<p>chaosc_tt</p>
+<blockquote>
+<div>test script to create n parallel osc receivers</div></blockquote>
+<p>chaosc_filter</p>
+<blockquote>
+<div>tool to filter and transcode osc messages by matching regular expressions on the osc address</div></blockquote>
+<p>chaosc_serial</p>
+<blockquote>
+<div>tool to transcode data coming from a serial input into osc messages and vis versa.
+Used as a middleware for a gefen 4x4 hdmi video matrix, which sends its state
+back via serial on a routing change and a jazzmutant Lemur.
+The Lemur gefen control sketch can also be retrieved via the &#8216;DerLiveCode&#8217;
+organization page on github.</div></blockquote>
+<p>chaosc_serial_input</p>
+<blockquote>
+<div>tool to test the chaosc_serial client without serial hardware</div></blockquote>
+<p>chaosc_recorder</p>
+<blockquote>
+<div>tool to record and replay osc messages like an audio recorder. In case that hub_address equals forward_address,
+no data will be forwarded in record or bypass mode.</div></blockquote>
+<p>Additionally there is a simple visual monitoring tool for chaosc written in java/processing.org,
+which can be found via <a class="reference external" href="https://github.com/DerLiveCode">https://github.com/DerLiveCode</a>.</p>
+</div>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Dependencies should be automatically pulled in when installing chaosc. If you
+prefer using another installation method for the dependencies, install these
+packages.</p>
+<ul class="simple">
+<li>python-2.7.x</li>
+<li>cython</li>
+<li>pyserial</li>
+</ul>
+</div>
+<div class="section" id="installation-using-easy-install-or-pip">
+<h2>Installation using easy_install or pip<a class="headerlink" href="#installation-using-easy-install-or-pip" title="Permalink to this headline">¶</a></h2>
+<p>easy_install -Z git://github.com/DerLiveCode/chaosc.git</p>
+</div>
+<div class="section" id="manual-installation">
+<h2>Manual Installation<a class="headerlink" href="#manual-installation" title="Permalink to this headline">¶</a></h2>
+<p>Obtaining the repository:</p>
+<div class="highlight-python"><pre>git clone git://github.com/DerLiveCode/chaosc.git</pre>
+</div>
+<p>Change current directory to your copy of chaosc:</p>
+<div class="highlight-python"><pre>cd chaosc</pre>
+</div>
+<p>Install into system path:</p>
+<div class="highlight-python"><pre>sudo python setup.py install</pre>
+</div>
+<p>Local developer mode installation:</p>
+<div class="highlight-python"><pre>sudo python setup.py develop</pre>
+</div>
+<p>For more information about setup.py commands:</p>
+<div class="highlight-python"><pre>python setup.py --help-commands</pre>
+</div>
+</div>
+</div>
+<div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s check which flags our new tools understand:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">chaosc</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">chaosc_ctl</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">chaosc_ts</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">chaosc_tt</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">chaosc_filter</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">chaosc_serial</span> <span class="o">-</span><span class="n">h</span>
+<span class="n">chaosc_serial_input</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>Start your instance with a string token and a port of your choice. The token will be needed later. The right one must be appended to ctl messages to prove you are authorzied to control chaosc.
+It&#8217;s perhaps a good idea to use screen or another terminal multiplexer. After every code snipped you have to detach from the session if you use screen or open another terminal:</p>
+<div class="highlight-python"><pre>screen -U
+chaosc -p 12345 -t foobar
+# detach from screen session</pre>
+</div>
+<p>To get other receivers subscribed, use the chaosc_ctl tool or create an osc
+message and send it to chaosc. The ctl commands are explained below in detail.
+Fire now up your senders and receivers on your own and skip the next shell code or use the test tools to start e.g 4 receivers beginning from port 13000 to 13003:</p>
+<div class="highlight-python"><pre>screen -U
+chaosc_tt -H 127.0.0.1 -p 12345 -o 127.0.0.1 -r 13000 -t foobar -s -n 4
+# detach from screen session</pre>
+</div>
+<p>Pick another shell and start e.g 4 senders beginning from port 14000 to 14003:</p>
+<div class="highlight-python"><pre>screen -U
+chaosc_ts -H localhost -p 12345 -n 4
+# detach from screen session</pre>
+</div>
+<p>We have created 4 test senders which get every osc message delivered to all 4 test receivers.
+Our receivers managed to subscribe to chaosc on their own by using the -s flag.</p>
+<p>Now we want to test our serial tools. If you have no real serial device yet, you can create a pts pair.
+We&#8217;ll use socat for that task:</p>
+<div class="highlight-python"><pre>skoegl@workstation ~ % screen -U
+skoegl@workstation ~ % sudo socat -d -d pty,raw,echo=1 pty,raw,echo=1
+2013/01/22 18:53:26 socat[28831] N PTY is /dev/pts/4
+2013/01/22 18:53:26 socat[28831] N PTY is /dev/pts/5
+2013/01/22 18:53:26 socat[28831] N starting data transfer loop with FDs [3,3] and [5,5]
+# detach from screen session</pre>
+</div>
+<p>Use one pts node for the chaosc_filter and one for the chaosc_serial_input.
+To test the serial line, we need a running osc receiver or chaosc_tt and then the chaosc_serial tool.
+Let&#8217;s start our serial tool:</p>
+<div class="highlight-python"><pre>screen -U
+chaosc_serial -i /dev/pts/4 -o localhost -r 11000 -H localhost -p 13000 -c ~/foobar_config
+# detach from screen session</pre>
+</div>
+<p>And our serial test tool:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">screen</span> <span class="o">-</span><span class="n">U</span>
+<span class="n">chaosc_serial_input</span> <span class="o">-</span><span class="n">o</span> <span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">pts</span><span class="o">/</span><span class="mi">5</span>
+<span class="c"># detach from screen session</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ways-of-subcription">
+<h2>Ways of subcription<a class="headerlink" href="#ways-of-subcription" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="up-front-file-based-configuration">
+<h3>Up-Front file based configuration<a class="headerlink" href="#up-front-file-based-configuration" title="Permalink to this headline">¶</a></h3>
+<p>You place your subscriptions in a file called targets.config in your chaosc config directory you specify with
+the cli flag &#8220;-c path/to/your/cfg_dir&#8221;. The cli flag -s loads your targets.conf file.</p>
+<p>Each line represents one recipient and should be of the form &#8220;host=foo;port=bar;label=baz&#8221;.</p>
+</div>
+<div class="section" id="using-the-command-line-control-client">
+<h3>Using the command line control client<a class="headerlink" href="#using-the-command-line-control-client" title="Permalink to this headline">¶</a></h3>
+<p>Let&#8217;s use the chaosc_ctl tool to subscribe a Lemur:</p>
+<div class="highlight-python"><pre>chaosc_ctl 127.0.0.1 12345 -t foobar subscribe 192.168.2.23 9999</pre>
+</div>
+<p>Or the same configured up-front in the target.config file:</p>
+<div class="highlight-python"><pre>host=192.168.2.23;port=9999;label=lemur-1</pre>
+</div>
+<p>And after our session we want to be nice users and remove the lemur from chaosc subscription:</p>
+<div class="highlight-python"><pre>chaosc_ctl -H 127.0.0.1 -p 12345 -t foobar unsubscribe 192.168.2.23 9999</pre>
+</div>
+</div>
+<div class="section" id="using-osc-messages">
+<h3>Using OSC messages<a class="headerlink" href="#using-osc-messages" title="Permalink to this headline">¶</a></h3>
+<p>By sending a &#8216;(un-)subscribe&#8217; osc message. See <a class="reference internal" href="#osc-control-label"><em>OSC control interface</em></a> for more information about
+using osc messages to control chaosc.</p>
+</div>
+</div>
+</div>
+<div class="section" id="advanced-usage">
+<h1>Advanced usage<a class="headerlink" href="#advanced-usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="filtering-and-transcoding-osc-messages">
+<h2>Filtering and transcoding osc messages<a class="headerlink" href="#filtering-and-transcoding-osc-messages" title="Permalink to this headline">¶</a></h2>
+<p>If you want to filter osc messages with regular expressions on the osc addresses, you can do so
+with the help of chaosc_filter. You have a white-list and a blacklist. Look into
+the example config file &#8216;filter.config&#8217;. There you can put a regular expression on each line
+prefixed with &#8216;white-list=&#8217; or &#8216;black-list=&#8217;. The filter will load and use them.
+The white-list will be evaluated first, then the blacklist. So, if you use a
+filter tool, you should not subscribe the receiving client to which filtered messages gets forwarded,
+and subscribe your filter instance instead.</p>
+<p>You can also transcode or modify osc messages as you like, but this is a bit more tricky.
+Look into <tt class="file docutils literal"><span class="pre">transcoders.py</span></tt> how to implement custom ones.
+We have also implemented some transcoders for our tasks. e.g to change the osc address
+for a osc2midi device, extracting some integer data from the osc address,
+map all floating point arguments to the midi value space from 0-127, and finally
+use some of the matched data as new arguments. The configuration takes place in
+a real python file located at config/transcoding_config.py.</p>
+<p>Also the filtering client can dump messages for monitoring purposes. If you provide
+the dump_only flag, it will not forward anything, just dumps the receiving messages.</p>
+<p>Here is an example to start chaosc_filter:</p>
+<div class="highlight-python"><pre>screen -U
+chaosc_filter -H 127.0.0.1 -p 12345 -o 127.0.0.1 -r 14000 -f 127.0.0.1 -F 12000 -t foobar -d -c ~/foobar_config
+# detach from screen session</pre>
+</div>
+</div>
+<div class="section" id="midichanger">
+<h2>MidiChanger<a class="headerlink" href="#midichanger" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-mapper-attribute">
+<h3>The mapper attribute<a class="headerlink" href="#the-mapper-attribute" title="Permalink to this headline">¶</a></h3>
+<p>You want to have full control, which data will be used for the new OSCMessage.
+So we need a parameterized way to reference arguments in the old message,
+groups from the regular expression match, transcoder members.</p>
+<p>The &#8216;regex&#8217; parameter holds the string used to match against the osc address.
+Groups you match can be used in the mapper.</p>
+<p>&#8216;to_fmt&#8217; is the string format template used by str.format</p>
+<p>The mapper is an iterable of iterables aka a mapping clause with 5 items.
+Each mapping clause has the form [&#8220;from_directive&#8221;, &#8220;from_value&#8221;, &#8220;to_directive&#8221;, &#8220;to_value&#8221;, &#8220;format_directive&#8221;]</p>
+<p>Here are the from_directives:</p>
+<dl class="docutils">
+<dt>member</dt>
+<dd>transcoder object member. The from_value must be object member name string</dd>
+<dt>regex</dt>
+<dd>must be a usable regular expression. The from_value must be a index in the match group</dd>
+<dt>osc_arg</dt>
+<dd>The from_value must be a index in the old osc message args list</dd>
+</dl>
+<p>And the to_directives:</p>
+<dl class="docutils">
+<dt>osc_arg</dt>
+<dd>the data mapped should be in the new osc message as arg at position &#8216;to_value&#8217;</dd>
+<dt>format</dt>
+<dd>the data mapped should be in the new osc address as format arg at position &#8216;to_value&#8217;</dd>
+</dl>
+<p>The from_value and to_value kann be a string as used as an attribute name usable by getattr or an integer used as an positional index.</p>
+<p>The format_directive has to be an registered function in transcoders:converters:</p>
+<blockquote>
+<div><ul class="simple">
+<li>midi</li>
+<li>int</li>
+<li>float</li>
+<li>str</li>
+<li>unicode</li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+</div>
+<div class="section" id="osc-control-interface">
+<span id="osc-control-label"></span><h1>OSC control interface<a class="headerlink" href="#osc-control-interface" title="Permalink to this headline">¶</a></h1>
+<p>You can use custom OSCMessages to control chaosc or to get operational stats.</p>
+<div class="section" id="subscribe">
+<h2>Subscribe<a class="headerlink" href="#subscribe" title="Permalink to this headline">¶</a></h2>
+<p>The last typetagged argument &#8220;label&#8217; is optional.</p>
+<dl class="docutils">
+<dt>Osc address</dt>
+<dd>/subscribe</dd>
+<dt>typetags</dt>
+<dd>&#8220;siss&#8221;</dd>
+<dt>args</dt>
+<dd>host to subscribe, port to subscribe, chaosc token, label</dd>
+<dt>response</dt>
+<dd>No response is send by chaosc</dd>
+</dl>
+</div>
+<div class="section" id="unsubscribe">
+<h2>Unsubscribe<a class="headerlink" href="#unsubscribe" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Osc address</dt>
+<dd>/unsubscribe</dd>
+<dt>typetags</dt>
+<dd>&#8220;sis&#8221;</dd>
+<dt>args</dt>
+<dd>subcribed host, subcribed port, chaosc token</dd>
+<dt>response</dt>
+<dd>No response is send by chaosc</dd>
+</dl>
+</div>
+<div class="section" id="statistics">
+<h2>Statistics<a class="headerlink" href="#statistics" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Osc address</dt>
+<dd>/stats</dd>
+<dt>typetags</dt>
+<dd>&#8220;sis&#8221;</dd>
+<dt>args</dt>
+<dd>response host, response port, chaosc token</dd>
+<dt>response</dt>
+<dd><p class="first">A OSCBundle with a list of OSCMessages.</p>
+<ol class="last arabic">
+<li><dl class="first docutils">
+<dt>a set of subscribed clients aka targets</dt>
+<dd><ul class="first last simple">
+<li>osc address &#8220;/st&#8221;</li>
+<li>typetags &#8220;sid&#8221;</li>
+<li>args (host, subscription label, msg_count, timestamp of last hit)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>a set of senders aka sources</dt>
+<dd><ul class="first last simple">
+<li>osc address &#8220;/ss&#8221;</li>
+<li>typetags &#8220;sid&#8221;</li>
+<li>args (host, msg_count, timestamp of last hit)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>a set of routes from sources to targets</dt>
+<dd><ul class="first last simple">
+<li>osc address &#8220;/sr&#8221;</li>
+<li>typetags &#8220;ssid&#8221; and args</li>
+<li>args (src_host, dst_host, msg_count, timestamp of last hit)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>an empty osc message to signal end of stats</dt>
+<dd><ul class="first last simple">
+<li>osc address &#8220;/se&#8221;</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+</div>
+<div class="section" id="scene">
+<h2>scene<a class="headerlink" href="#scene" title="Permalink to this headline">¶</a></h2>
+<p>makes chaosc_filter to activate filters for scene id.</p>
+<dl class="docutils">
+<dt>Osc address</dt>
+<dd>/scene</dd>
+<dt>typetags</dt>
+<dd>&#8220;i&#8221;</dd>
+<dt>args</dt>
+<dd>scene id</dd>
+<dt>response</dt>
+<dd>No response is send by chaosc_filter</dd>
+</dl>
+</div>
+<div class="section" id="forward">
+<h2>forward<a class="headerlink" href="#forward" title="Permalink to this headline">¶</a></h2>
+<p>makes chaosc_filter to activate filters for the following scene id.</p>
+<dl class="docutils">
+<dt>Osc address</dt>
+<dd>/forward</dd>
+<dt>typetags</dt>
+<dd>None</dd>
+<dt>args</dt>
+<dd>None</dd>
+<dt>response</dt>
+<dd>No response is send by chaosc_filter</dd>
+</dl>
+</div>
+<div class="section" id="id1">
+<h2>forward<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>makes chaosc_filter to activate filters for the previous scene id.</p>
+<dl class="docutils">
+<dt>Osc address</dt>
+<dd>/back</dd>
+<dt>typetags</dt>
+<dd>None</dd>
+<dt>args</dt>
+<dd>None</dd>
+<dt>response</dt>
+<dd>No response is send by chaosc_filter</dd>
+</dl>
+</div>
+</div>
+<div class="section" id="module-chaosc.chaosc">
+<span id="api"></span><h1>API<a class="headerlink" href="#module-chaosc.chaosc" title="Permalink to this headline">¶</a></h1>
+<p>This module implements a osc hub/proxy</p>
+<dl class="class">
+<dt id="chaosc.chaosc.Chaosc">
+<em class="property">class </em><tt class="descclassname">chaosc.chaosc.</tt><tt class="descname">Chaosc</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A multi-unicast osc application level gateway</p>
+<p>Multiplexes osc messages from osc sources to subscribed targets.</p>
+<p>Targets will receive messages after they are subscribed to chaosc. You can
+also use a targets.config file for static subscriptions.</p>
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc._Chaosc__load_subscriptions">
+<tt class="descname">_Chaosc__load_subscriptions</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc._Chaosc__load_subscriptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads predefined subcriptions from a file in given config directory</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) &#8211; the directory in which the targets.config file resists</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc._Chaosc__proxy_handler">
+<tt class="descname">_Chaosc__proxy_handler</tt><big>(</big><em>packet</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc._Chaosc__proxy_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends incoming osc messages to subscribed receivers</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc._Chaosc__stats_handler">
+<tt class="descname">_Chaosc__stats_handler</tt><big>(</big><em>addr</em>, <em>tags</em>, <em>data</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc._Chaosc__stats_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a osc bundle with subscribed clients and statistical data
+for monitoring and visualization usage.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc._Chaosc__subscription_handler">
+<tt class="descname">_Chaosc__subscription_handler</tt><big>(</big><em>addr</em>, <em>typetags</em>, <em>args</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc._Chaosc__subscription_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>handles a target subscription.</p>
+<p>The provided &#8216;typetags&#8217; equals [&#8220;s&#8221;, &#8220;i&#8221;, &#8220;s&#8221;, &#8220;s&#8221;] and
+&#8216;args&#8217; contains [host, portnumber, token, label]
+or [&#8220;s&#8221;, &#8220;i&#8221;, &#8220;s&#8221;] and &#8216;args&#8217; contains [host, portnumber, token]</p>
+<p>only subscription requests with valid host and token will be granted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc._Chaosc__unsubscription_handler">
+<tt class="descname">_Chaosc__unsubscription_handler</tt><big>(</big><em>address</em>, <em>typetags</em>, <em>args</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc._Chaosc__unsubscription_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle the actual unsubscription</p>
+<p>The provided &#8216;typetags&#8217; equals [&#8220;s&#8221;, &#8220;i&#8221;, &#8220;s&#8221;] and
+&#8216;args&#8217; contains [host, portnumber, token]</p>
+<p>Only unsubscription requests with valid host and token will be granted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate an OSCServer.
+server_address ((host, port) tuple): the local host &amp; UDP-port
+the server listens on</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>server_address</strong> (<em>tuple</em>) &#8211; (host, port) to listen on</li>
+<li><strong>token</strong> (<em>str</em>) &#8211; token used to authorize ctl commands</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.__str__">
+<tt class="descname">__str__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string containing this Server&#8217;s Class-name,
+software-version and local bound address (if any)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.add_handler">
+<tt class="descname">add_handler</tt><big>(</big><em>address</em>, <em>callback</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.add_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers a handler for an OSC-address</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>address</strong> (<em>str</em>) &#8211; the OSC address-string. It should start with &#8216;/&#8217;
+and may not contain &#8216;*&#8217;</li>
+<li><strong>callback</strong> (<em>method or function</em>) &#8211; is the procedure called for incoming OSCMessages
+that equals <cite>address</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The callback-function must accept four arguments
+(str addr, tuple typetags, tuple args, tuple client_address),
+as returned by decode_osc.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.address">
+<tt class="descname">address</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a (host,port) tuple of the local address this server
+is bound to or None if not bound to any address.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.process_request">
+<tt class="descname">process_request</tt><big>(</big><em>request</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.process_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle incoming requests</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.remove_handler">
+<tt class="descname">remove_handler</tt><big>(</big><em>address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.remove_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the registered handler for the given OSC-address</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>address</strong> (<em>str</em>) &#8211; the OSC address-string. It should start with &#8216;/&#8217;
+and may not contain &#8216;*&#8217;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc.Chaosc.sendto">
+<tt class="descname">sendto</tt><big>(</big><em>msg</em>, <em>address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc.Chaosc.sendto" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the given OSCMessage to the specified address.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>msg</strong> (<em>OSCMessage or OSCBundle</em>) &#8211; the message to send</li>
+<li><strong>address</strong> (<em>tuple</em>) &#8211; (host, port) of receiving osc server</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Except :</th><td class="field-body"><p class="first last">OSCError when timing out while waiting for the socket.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="module-chaosc.osc_lib">
+<span id="chaosc-osc-chaosc-and-chaosc-c-osc-lib"></span><h2>chaosc.osc_chaosc and chaosc.c_osc_lib<a class="headerlink" href="#module-chaosc.osc_lib" title="Permalink to this headline">¶</a></h2>
+<p>This is a pure python osc lib implementation. This software is based on OSC.py,
+but was heavily modified and streamlined. There is also a cython based
+implementation, which should be prefered named c_osc_lib.pyx.</p>
+<p>Use this import statement to be sure to get the c lib:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">chaosc.c_osc_lib</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">chaosc.osc_lib</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="section" id="id2">
+<h3>Usage<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>To use this library, you should have some basic knowledge how the OSC container
+format works. An OSCMessage is like a binary container or a list.
+It has a header, and some optional payload of heterogenous data. You can store
+arguments in the payload, but not OSCMessages. There also are OSCBundles.
+These are defined recursively as a container of OSCBundles and or OSCMessages.
+Never put an OSCMessage in an OSCMessage or a raw argument in an OSCBundle.</p>
+</div>
+<div class="section" id="supported-argument-types">
+<h3>Supported argument types<a class="headerlink" href="#supported-argument-types" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li>32 bit integer</li>
+<li>32-bit float</li>
+<li>64-bit long</li>
+<li>64-bit double</li>
+<li>variable length string with length annotation</li>
+<li>variable length blob with length annotation</li>
+</ul>
+</div></blockquote>
+<dl class="exception">
+<dt id="chaosc.osc_lib.OSCError">
+<em class="property">exception </em><tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">OSCError</tt><a class="headerlink" href="#chaosc.osc_lib.OSCError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base Class for all OSC-related errors</p>
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCError.__weakref__">
+<tt class="descname">__weakref__</tt><a class="headerlink" href="#chaosc.osc_lib.OSCError.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="chaosc.osc_lib.OSCBundleFound">
+<em class="property">exception </em><tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">OSCBundleFound</tt><a class="headerlink" href="#chaosc.osc_lib.OSCBundleFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marker Class for OSC Bundles</p>
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCBundleFound.__weakref__">
+<tt class="descname">__weakref__</tt><a class="headerlink" href="#chaosc.osc_lib.OSCBundleFound.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="chaosc.osc_lib.OSCMessage">
+<em class="property">class </em><tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">OSCMessage</tt><big>(</big><em>address</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds typetagged OSC messages.</p>
+<p>An OSCMessage is a container object used for construction of osc messages.
+On the &#8216;front&#8217; end, they behave much like list-objects, and when needed
+they generate a OSC 1.1 spec compliant binary representation.</p>
+<p>OSC-messages consist of an &#8216;address&#8217;-string
+(not to be confused with a (host, port) IP-address!), followed by a string
+of &#8216;typetags&#8217; which indicates the arguments&#8217; types,
+and finally the arguments themselves, encoded in an OSC-specific way.</p>
+<p>On the Python end, OSCMessage are lists of arguments, prepended by the
+message&#8217;s address. The message contents can be manipulated much like a list:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span> <span class="o">=</span> <span class="n">OSCMessage</span><span class="p">(</span><span class="s">&quot;/my/osc/address&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;something&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;something else&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;entirely&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mf">3.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">appendTypedArg</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s">&quot;i&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">appendTypedArg</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s">&quot;i&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">6.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">msg</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">msg</span>
+<span class="go">/my/osc/address [&#39;something else&#39;, &#39;entirely&#39;, 1, 6.0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">binary</span> <span class="o">=</span> <span class="n">encode_osc</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">repr</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span>
+<span class="go">&#39;/my/osc/address\x00,ssif\x00\x00\x00something else\x00\x00entirely\x00\x00\x00\x00\x00\x00\x00\x01@\xc0\x00\x00&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msg2</span> <span class="o">=</span> <span class="n">decode_osc</span><span class="p">(</span><span class="n">binary</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">repr</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+<span class="go">(&#39;/my/osc/address&#39;, [&#39;s&#39;, &#39;s&#39;, &#39;i&#39;, &#39;f&#39;], [&#39;something else&#39;, &#39;entirely&#39;, 1, 6.0])</span>
+</pre></div>
+</div>
+<p>Additional convenient methods exist for retrieving typetags or manipulating
+items as (typetag, value) tuples.</p>
+<p>It&#8217;s perfectly ok to directly access the object members, but it&#8217;s up to you
+to keep typetags and args in sync.</p>
+<p>Best practice for performance is to create your OSCMessage and store the
+binary representation in a variable and reuse it whenever possible. We&#8217;re
+also played with a simple representation cache, but decided against it.
+It&#8217;s really simple to implement one with annotations, subclassing or simply 
+fork and hack straight into this module.</p>
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCMessage.address">
+<tt class="descname">address</tt><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>string which holds the messages&#8217; osc address. This attribute can be
+changed directly.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCMessage.typetags">
+<tt class="descname">typetags</tt><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.typetags" title="Permalink to this definition">¶</a></dt>
+<dd><p>list which holds the messages&#8217; typetags.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCMessage.args">
+<tt class="descname">args</tt><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>list which holds the messages&#8217; arguments.</p>
+</dd></dl>
+
+<p>To construct a timetagged collection of multiple OSCMessages, see OSCBundle!</p>
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__contains__">
+<tt class="descname">__contains__</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__contains__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test if the given value appears in the OSCMessage&#8217;s arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the argument to check for presence</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__delitem__">
+<tt class="descname">__delitem__</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__delitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the indicated argument</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<em>int</em>) &#8211; the position</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__delslice__">
+<tt class="descname">__delslice__</tt><big>(</big><em>index</em>, <em>end</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__delslice__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the indicated slice</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em>) &#8211; the position</li>
+<li><strong>end</strong> (<em>int</em>) &#8211; the end</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__eq__">
+<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if two OSCMessages have the same address &amp; content</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> (<em>OSCMessage</em>) &#8211; the osc message to compare</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__getitem__">
+<tt class="descname">__getitem__</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the indicated argument (or slice)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>index</strong> (<em>int</em>) &#8211; the position</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the argument at position &#8216;index&#8217;</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str or int or float or double</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>address</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate a new OSCMessage.
+The OSC-address can be specified with the &#8216;address&#8217; argument.
+The rest of the arguments are appended as data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>address</strong> (<em>str</em>) &#8211; osc address string</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__iter__">
+<tt class="descname">__iter__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterator of the OSCMessage&#8217;s arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">iterator</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__len__">
+<tt class="descname">__len__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__len__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of arguments this message contains</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__ne__">
+<tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__ne__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if two OSCMessages have not the same address or content</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> (<em>OSCMessage</em>) &#8211; the osc message to compare</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__repr__">
+<tt class="descname">__repr__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string containing the decode Message</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__reversed__">
+<tt class="descname">__reversed__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__reversed__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a reverse iterator of the OSCMessage&#8217;s arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">iterator</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__setitem__">
+<tt class="descname">__setitem__</tt><big>(</big><em>index</em>, <em>arguments</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__setitem__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set indicatated argument (or slice) to a new value.
+&#8216;val&#8217; can be a single int/float/string, or a (typehint, value) tuple.
+Or, if &#8216;i&#8217; is a slice, a list of these or another OSCMessage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em>) &#8211; the position</li>
+<li><strong>arguments</strong> (<em>str or int or float or double</em>) &#8211; the position</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.__str__">
+<tt class="descname">__str__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Message&#8217;s address and contents as a string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCMessage.__weakref__">
+<tt class="descname">__weakref__</tt><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.append">
+<tt class="descname">append</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends _one_ argument to the message.</p>
+<p>The typetag is inferred from the argument&#8217;s type. If the argument is a
+blob (counted string) pass in &#8216;b&#8217; as typetag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; a item to store in the message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.appendTypedArg">
+<tt class="descname">appendTypedArg</tt><big>(</big><em>argument</em>, <em>typetag</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.appendTypedArg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends a typed argument to the message.</p>
+<p>If the argument is a blob (counted string) pass in &#8216;b&#8217; as typetag.
+Prefer this method above <a class="reference internal" href="#chaosc.osc_lib.OSCMessage.append" title="chaosc.osc_lib.OSCMessage.append"><tt class="xref py py-meth docutils literal"><span class="pre">append()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the item to store in the message</li>
+<li><strong>typetag</strong> (<em>str</em>) &#8211; a 1-char typetag representation defined in osc spec</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.clear">
+<tt class="descname">clear</tt><big>(</big><em>address=''</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>clears all attributes to factory state and sets the address</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>address</strong> (<em>str</em>) &#8211; osc address</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.count">
+<tt class="descname">count</tt><big>(</big><em>val</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the count a given value occurs in the OSCMessage&#8217;s arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.encode_osc">
+<tt class="descname">encode_osc</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.encode_osc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the binary representation of the message</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>self</strong> (<em>OSCMessage</em>) &#8211; the OSCMessage to encode</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.extend">
+<tt class="descname">extend</tt><big>(</big><em>arguments</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append the contents of &#8216;arguments&#8217; to this OSCMessage.
+&#8216;values&#8217; a list/tuple of ints/floats/strings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arguments</strong> (<em>tuple</em>) &#8211; the arguments to append</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.extendTypedArgs">
+<tt class="descname">extendTypedArgs</tt><big>(</big><em>typetags</em>, <em>arguments</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.extendTypedArgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extents this OSCMessage with the given arguments.</p>
+<p>Prefer this method above <a class="reference internal" href="#chaosc.osc_lib.OSCMessage.extend" title="chaosc.osc_lib.OSCMessage.extend"><tt class="xref py py-meth docutils literal"><span class="pre">extend()</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>typetags</strong> (<em>tuple</em>) &#8211; the typetags to append</li>
+<li><strong>arguments</strong> (<em>tuple</em>) &#8211; the arguments to append</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.index">
+<tt class="descname">index</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the index of the first occurence of the given value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; value to find in args</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">ValueError if val isn&#8217;t found</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.insert">
+<tt class="descname">insert</tt><big>(</big><em>index</em>, <em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert given argument into the OSCMessage at the given index.</p>
+<p>The typetag will be inferred.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em>) &#8211; the position</li>
+<li><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the argument to insert</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.insertTypedArg">
+<tt class="descname">insertTypedArg</tt><big>(</big><em>index</em>, <em>argument</em>, <em>typetag</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.insertTypedArg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Insert a typed argument at the given index.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>index</strong> (<em>int</em>) &#8211; the position</li>
+<li><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the argument to insert</li>
+<li><strong>typetag</strong> (<em>str</em>) &#8211; a 1-char typetag representation defined in osc spec</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.items">
+<tt class="descname">items</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of (typetag, value) tuples for
+the arguments appended so far</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.pop">
+<tt class="descname">pop</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given argument from the OSCMessage, and returns it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the argument to insert</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">argument</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str or int or float or double</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.popitem">
+<tt class="descname">popitem</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.popitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given argument from the OSCMessage, and returns it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the argument to insert</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(typetag, argument)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.remove">
+<tt class="descname">remove</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the first argument with the given value from the OSCMessage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str or int or float or double</em>) &#8211; the argument to insert</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">ValueError if argument isn&#8217;t found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.reverse">
+<tt class="descname">reverse</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.reverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reverses the arguments of the OSCMessage (in place)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.tags">
+<tt class="descname">tags</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of typetags of the appended arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCMessage.values">
+<tt class="descname">values</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCMessage.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the arguments appended so far</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="chaosc.osc_lib.OSCBundle">
+<em class="property">class </em><tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">OSCBundle</tt><big>(</big><em>timetag=0.0</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a &#8216;bundle&#8217; of OSC messages.</p>
+<p>OSCBundles are list objects for building binary osc containers for more than
+one message or bundle. They are defined recursively, so a bundle can hold
+more bundles or osc messages.</p>
+<dl class="docutils">
+<dt>OSCBundle have some limitations, but there are not enforced!:</dt>
+<dd><ul class="first last">
+<li><p class="first">an argument must be an OSCMessage or an OSCBundle</p>
+</li>
+<li><dl class="first docutils">
+<dt>an OSCBundle does not have an address on its own, only the contained</dt>
+<dd><p class="first last">OSC-messages do.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>OSC-bundles have a timetag to tell the receiver when the bundle should</dt>
+<dd><p class="first last">be processed. The default timetag value (0) means &#8216;immediately&#8217;.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.__eq__">
+<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if two OSCBundles have the same timetag &amp; content</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>timetag=0.0</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate a new OSCBundle.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>address</strong> (<em>str</em>) &#8211; osc address</li>
+<li><strong>time</strong> (<em>float</em>) &#8211; positive timetag in seconds</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.__str__">
+<tt class="descname">__str__</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.__str__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the Bundle&#8217;s contents (and timetag, if nonzero) as a string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="chaosc.osc_lib.OSCBundle.__weakref__">
+<tt class="descname">__weakref__</tt><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.append">
+<tt class="descname">append</tt><big>(</big><em>osc_message</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Appends an OSCMessage</p>
+<p>Any newly created OSCMessage inherits the OSCBundle&#8217;s address at
+the time of creation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>osc_message</strong> (<em>OSCMessage</em>) &#8211; the osc message to append</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.encode_osc">
+<tt class="descname">encode_osc</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.encode_osc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the binary representation of the message</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the binary representation</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.getTimeTagStr">
+<tt class="descname">getTimeTagStr</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.getTimeTagStr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the TimeTag as a human-readable string</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a human readable timetag representation</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.osc_lib.OSCBundle.setTimeTag">
+<tt class="descname">setTimeTag</tt><big>(</big><em>time</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.OSCBundle.setTimeTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set or change the OSCBundle&#8217;s TimeTag</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time</strong> (<em>float</em>) &#8211; floating seconds since the Epoch, must be positive</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="chaosc.osc_lib.proxy_decode_osc">
+<tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">proxy_decode_osc</tt><big>(</big><em>data</em>, <em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.proxy_decode_osc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a binary OSC message to a Python list.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="chaosc.osc_lib.encode_string">
+<tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">encode_string</tt><big>(</big><em>argument</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.encode_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string into a zero-padded OSC String.
+The length of the resulting string is always a multiple of 4 bytes.
+The string ends with 1 to 4 zero-bytes (&#8216;&#8217;)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>argument</strong> (<em>str</em>) &#8211; the string to encode</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="chaosc.osc_lib.decode_osc">
+<tt class="descclassname">chaosc.osc_lib.</tt><tt class="descname">decode_osc</tt><big>(</big><em>data</em>, <em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#chaosc.osc_lib.decode_osc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a binary OSC message to a Python list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>str</em>) &#8211; the binary representation of an osc message</li>
+<li><strong>start</strong> (<em>int</em>) &#8211; position to start parsing</li>
+<li><strong>end</strong> (<em>int</em>) &#8211; length of data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">osc_address, typetags, args</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-chaosc.simpleOSCServer">
+<span id="chaosc-simpleoscserver"></span><h2>chaosc.simpleOSCServer<a class="headerlink" href="#module-chaosc.simpleOSCServer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer">
+<em class="property">class </em><tt class="descclassname">chaosc.simpleOSCServer.</tt><tt class="descname">SimpleOSCServer</tt><big>(</big><em>server_address</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple osc server/client to build upon our tools.</p>
+<p>Subscribes to chaosc if you want.</p>
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.__eq__">
+<tt class="descname">__eq__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.__eq__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>server_address</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate an OSCServer.
+server_address ((host, port) tuple): the local host &amp; UDP-port
+the server listens on</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.__ne__">
+<tt class="descname">__ne__</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.__ne__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.addMsgHandler">
+<tt class="descname">addMsgHandler</tt><big>(</big><em>address</em>, <em>callback</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.addMsgHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register a handler for an OSC-address
+- &#8216;address&#8217; is the OSC address-string.
+the address-string should start with &#8216;/&#8217; and may not contain &#8216;*&#8217;
+- &#8216;callback&#8217; is the function called for incoming OSCMessages that match &#8216;address&#8217;.
+The callback-function will be called with the same arguments as the &#8216;msgPrinter_handler&#8217; below</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.address">
+<tt class="descname">address</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a (host,port) tuple of the local address this server is bound to,
+or None if not bound to any address.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops serving requests, closes server (socket), closes used client</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.connect">
+<tt class="descname">connect</tt><big>(</big><em>address</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>connects as a sending client to another server</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.delMsgHandler">
+<tt class="descname">delMsgHandler</tt><big>(</big><em>address</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.delMsgHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the registered handler for the given OSC-address</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.dispatchMessage">
+<tt class="descname">dispatchMessage</tt><big>(</big><em>address</em>, <em>tags</em>, <em>args</em>, <em>packet</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.dispatchMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dispatches messages to a callback or a default msg handler, which
+should be registered with &#8220;X&#8221; as osc address.</p>
+<p>If you don&#8217;t need message dispatching, you can also overwrite
+the <tt class="xref py py-meth docutils literal"><span class="pre">SimpleOSCServer.process_request()</span></tt> inherited from BaseServer</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.send">
+<tt class="descname">send</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a osc message or bundle the server conntected to by <a class="reference internal" href="#chaosc.simpleOSCServer.SimpleOSCServer.connect" title="chaosc.simpleOSCServer.SimpleOSCServer.connect"><tt class="xref py py-meth docutils literal"><span class="pre">connect()</span></tt></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.sendto">
+<tt class="descname">sendto</tt><big>(</big><em>msg</em>, <em>address</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.sendto" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the given OSCMessage to the specified address.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>msg</strong> (<em>OSCMessage or OSCBundle</em>) &#8211; the message to send</li>
+<li><strong>address</strong> (<em>tuple</em>) &#8211; (host, port) of receiving osc server</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Except :</th><td class="field-body"><p class="first last">OSCError when timing out while waiting for the socket.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.simpleOSCServer.SimpleOSCServer.subscribe_me">
+<tt class="descname">subscribe_me</tt><big>(</big><em>chaosc_address</em>, <em>receiver_address</em>, <em>token</em>, <em>name=None</em><big>)</big><a class="headerlink" href="#chaosc.simpleOSCServer.SimpleOSCServer.subscribe_me" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use this procedure for a quick&#8217;n dirty subscription to your chaosc instance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>chaosc_address</strong> (<em>tuple</em>) &#8211; (chaosc_host, chaosc_port)</li>
+<li><strong>receiver_address</strong> (<em>tuple</em>) &#8211; (host, port)</li>
+<li><strong>token</strong> (<em>str</em>) &#8211; token to get authorized for subscription</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-chaosc.transcoders">
+<span id="chaosc-transcoders"></span><h2>chaosc.transcoders<a class="headerlink" href="#module-chaosc.transcoders" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-chaosc.chaosc_filter">
+<span id="chaosc-chaosc-filter"></span><h2>chaosc.chaosc_filter<a class="headerlink" href="#module-chaosc.chaosc_filter" title="Permalink to this headline">¶</a></h2>
+<p>This module implements the standalone filtering tool in the chaosc framework.</p>
+<p>It uses the chaosc osc_lib but does not depend on chaosc features, so it can
+be used with other osc compatible gear.</p>
+<p>We provide here osc message filtering based on python regex defined in a file
+and a very flexible transcoding toolchain, but it&#8217;s up to your python skills
+to master them. The TranscoderBaseHandler subclasses should be defined in the 
+appropriate python module you place in the config directory. Please refer for
+a howto/examples to our comprehensive docs or look into the provided example
+transcoding.py file.</p>
+<dl class="class">
+<dt id="chaosc.chaosc_filter.FilterOSCServer">
+<em class="property">class </em><tt class="descclassname">chaosc.chaosc_filter.</tt><tt class="descname">FilterOSCServer</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#chaosc.chaosc_filter.FilterOSCServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>OSC filtering/transcoding middleware</p>
+<dl class="method">
+<dt id="chaosc.chaosc_filter.FilterOSCServer.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>result</em><big>)</big><a class="headerlink" href="#chaosc.chaosc_filter.FilterOSCServer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>ctor for filter server</p>
+<p>starts the server, loads scene filters and transcoders and chooses
+the request handler, which is one of
+forward only, forward and dump, dump only.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>result</strong> (<em>namespace object</em>) &#8211; return value of argparse.parse_args</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc_filter.FilterOSCServer.add_transcoder">
+<tt class="descname">add_transcoder</tt><big>(</big><em>handler</em><big>)</big><a class="headerlink" href="#chaosc.chaosc_filter.FilterOSCServer.add_transcoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a transcoder to chaosc.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>handler</strong> (<em>ITranscoderHandler</em>) &#8211; an TranscoderBaseHandler implementation</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc_filter.FilterOSCServer.dispatchMessage">
+<tt class="descname">dispatchMessage</tt><big>(</big><em>osc_address</em>, <em>typetags</em>, <em>args</em>, <em>packet</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc_filter.FilterOSCServer.dispatchMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles this filtering, transcoding steps and forwards the result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>osc_address</strong> (<em>str</em>) &#8211; the OSC address string.</li>
+<li><strong>typetags</strong> (<em>list</em>) &#8211; the typetags of args</li>
+<li><strong>args</strong> (<em>list</em>) &#8211; the osc message args</li>
+<li><strong>packet</strong> (<em>str</em>) &#8211; the binary representation of a osc message</li>
+<li><strong>client_address</strong> (<em>tuple</em>) &#8211; (host, port) of the requesting client</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc_filter.FilterOSCServer.dump_handler">
+<tt class="descname">dump_handler</tt><big>(</big><em>osc_address</em>, <em>typetags</em>, <em>args</em>, <em>packet</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc_filter.FilterOSCServer.dump_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles this filtering, transcoding steps and forwards the result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>osc_address</strong> (<em>str</em>) &#8211; the OSC address string.</li>
+<li><strong>typetags</strong> (<em>list</em>) &#8211; the typetags of args</li>
+<li><strong>args</strong> (<em>list</em>) &#8211; the osc message args</li>
+<li><strong>packet</strong> (<em>str</em>) &#8211; the binary representation of a osc message</li>
+<li><strong>client_address</strong> (<em>tuple</em>) &#8211; (host, port) of the requesting client</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="chaosc.chaosc_filter.FilterOSCServer.dump_only_handler">
+<tt class="descname">dump_only_handler</tt><big>(</big><em>osc_address</em>, <em>typetags</em>, <em>args</em>, <em>packet</em>, <em>client_address</em><big>)</big><a class="headerlink" href="#chaosc.chaosc_filter.FilterOSCServer.dump_only_handler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handles this filtering, transcoding steps and forwards the result</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>osc_address</strong> (<em>str</em>) &#8211; the OSC address string.</li>
+<li><strong>typetags</strong> (<em>list</em>) &#8211; the typetags of args</li>
+<li><strong>args</strong> (<em>list</em>) &#8211; the osc message args</li>
+<li><strong>packet</strong> (<em>str</em>) &#8211; the binary representation of a osc message</li>
+<li><strong>client_address</strong> (<em>tuple</em>) &#8211; (host, port) of the requesting client</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Chaosc&#8217;s documentation!</a><ul>
+<li><a class="reference internal" href="#licenses">Licenses</a></li>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tools-overview">Tools overview</a></li>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#installation-using-easy-install-or-pip">Installation using easy_install or pip</a></li>
+<li><a class="reference internal" href="#manual-installation">Manual Installation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li><a class="reference internal" href="#ways-of-subcription">Ways of subcription</a><ul>
+<li><a class="reference internal" href="#up-front-file-based-configuration">Up-Front file based configuration</a></li>
+<li><a class="reference internal" href="#using-the-command-line-control-client">Using the command line control client</a></li>
+<li><a class="reference internal" href="#using-osc-messages">Using OSC messages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#advanced-usage">Advanced usage</a><ul>
+<li><a class="reference internal" href="#filtering-and-transcoding-osc-messages">Filtering and transcoding osc messages</a></li>
+<li><a class="reference internal" href="#midichanger">MidiChanger</a><ul>
+<li><a class="reference internal" href="#the-mapper-attribute">The mapper attribute</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#osc-control-interface">OSC control interface</a><ul>
+<li><a class="reference internal" href="#subscribe">Subscribe</a></li>
+<li><a class="reference internal" href="#unsubscribe">Unsubscribe</a></li>
+<li><a class="reference internal" href="#statistics">Statistics</a></li>
+<li><a class="reference internal" href="#scene">scene</a></li>
+<li><a class="reference internal" href="#forward">forward</a></li>
+<li><a class="reference internal" href="#id1">forward</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-chaosc.chaosc">API</a><ul>
+<li><a class="reference internal" href="#module-chaosc.osc_lib">chaosc.osc_chaosc and chaosc.c_osc_lib</a><ul>
+<li><a class="reference internal" href="#id2">Usage</a></li>
+<li><a class="reference internal" href="#supported-argument-types">Supported argument types</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-chaosc.simpleOSCServer">chaosc.simpleOSCServer</a></li>
+<li><a class="reference internal" href="#module-chaosc.transcoders">chaosc.transcoders</a></li>
+<li><a class="reference internal" href="#module-chaosc.chaosc_filter">chaosc.chaosc_filter</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">chaosc 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Stefan Kögl.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
