@@ -6,6 +6,16 @@
 Welcome to Chaosc's documentation!
 ==================================
 
+Homepage
+--------
+
+This documentation can be read online here: http://derlivecode.github.com/chaosc.
+You can also generate this in a lot of different output formats with sphinx, e.g pdf::
+
+    cd chaosc/docs
+    make latexpdf
+
+The git repository is hosted by github here: https://github.com/DerLiveCode/chaosc
 
 Licenses
 --------
