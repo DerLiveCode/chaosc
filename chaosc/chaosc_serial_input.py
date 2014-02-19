@@ -24,13 +24,13 @@ from threading import Thread, Lock
 
 import serial
 from datetime import datetime
-from simpleOSCServer import SimpleOSCServer
-from config import transcoding_config
+from .simpleOSCServer import SimpleOSCServer
+from .config import transcoding_config
 
 try:
-    from c_osc_lib import OSCMessage, encode_osc
+    from .c_osc_lib import OSCMessage, encode_osc
 except ImportError:
-    from osc_lib  import OSCMessage, encode_osc
+    from .osc_lib  import OSCMessage, encode_osc
 
 
 status = [1, 1, 1, 1]

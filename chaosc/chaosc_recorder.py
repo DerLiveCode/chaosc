@@ -17,10 +17,10 @@
 # 
 # Copyright (C) 2012-2013 Stefan Kögl
 
-import sys, os, os.path, argparse, re, cPickle, time, asyncore, socket, thread
+import sys, os, os.path, argparse, re, pickle, time, asyncore, socket, _thread
 
 from threading import Thread, Lock
-from simpleOSCServer import SimpleOSCServer
+from .simpleOSCServer import SimpleOSCServer
 import termios, tty
 
 import asyncore, socket
@@ -57,23 +57,23 @@ class ReplayThread(Thread):
         self.playing = True
 
     def run(self):
-        print "Replay started"
+        print("Replay started")
         playstart = time.time()
         current_packet = 0
         if not self.recorder.data:
-            print "Replay ended"
+            print("Replay ended")
             self.playing = False
             return
 
         while self.playing:
-            print "pass"
+            print("pass")
             try:
                 timestamp, packet = self.recorder.data[current_packet]
                 if time.time() - playstart <= 0.0:
                     self.recorder.socket.sendto(packet, self.recorder.forward_address)
                 current_packet +=1
-            except IndexError, e:
-                print "Replay ended"
+            except IndexError as e:
+                print("Replay ended")
                 self.playing = False
 
 class ControlThread(Thread):
@@ -119,8 +119,8 @@ class ControlThread(Thread):
             elif char == "s":
                 try:
                     self.recorder.save()
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
             elif char == "q":
                 termios.tcsetattr(self.fd, termios.TCSADRAIN, self.remember_attributes)
                 sys.stdout.write("\033[1G")
@@ -144,7 +144,7 @@ class OSCRecorder(SimpleOSCServer):
         self.loopback = hub_address == forward_address
         self.help()
         if self.loopback:
-            print "Detected loopback mode. Deactivating osc message forwarding in modes 'bypass' and 'record'."
+            print("Detected loopback mode. Deactivating osc message forwarding in modes 'bypass' and 'record'.")
         self.subscribe_me(hub_address, filter_address, token)
         self.load()
         self.bypass()
@@ -162,33 +162,33 @@ class OSCRecorder(SimpleOSCServer):
             raise Exception("stop recording before saving")
 
         self.lock.acquire()
-        cPickle.dump((self.recstart, self.rec_end, self.data), open(self.path, "w"), 2)
+        pickle.dump((self.recstart, self.rec_end, self.data), open(self.path, "w"), 2)
         self.lock.release()
 
     def load(self):
         self.lock.acquire()
         try:
-            self.recstart, self.rec_end, self.data = cPickle.load(open(self.path, "r"))
-            print "Loaded osc session from %r with length %rs" % (time.ctime(self.recstart), int(self.rec_end - self.recstart))
-        except Exception,e:
-            print "No osc session loaded yet"
+            self.recstart, self.rec_end, self.data = pickle.load(open(self.path, "r"))
+            print("Loaded osc session from %r with length %rs" % (time.ctime(self.recstart), int(self.rec_end - self.recstart)))
+        except Exception as e:
+            print("No osc session loaded yet")
             pass
         self.lock.release()
 
     def help(self):
-        print "This is chaosc_recorder."
-        print
-        print "press h to get this help"
-        print "press q to quit"
-        print "press p for replay"
-        print "press b for bypassing"
-        print "press r for recording"
-        print "press s (in bypass mode) to save your recording to file"
-        print
-        print "Current mode: %s..." % self.modeName()
+        print("This is chaosc_recorder.")
+        print()
+        print("press h to get this help")
+        print("press q to quit")
+        print("press p for replay")
+        print("press b for bypassing")
+        print("press r for recording")
+        print("press s (in bypass mode) to save your recording to file")
+        print()
+        print("Current mode: %s..." % self.modeName())
 
     def play(self):
-        print "Started replay..."
+        print("Started replay...")
         self.lock.acquire()
         self.mode = 2
         self.thread = ReplayThread(self)
@@ -196,7 +196,7 @@ class OSCRecorder(SimpleOSCServer):
         self.lock.release()
 
     def record(self):
-        print "Started recording..."
+        print("Started recording...")
         self.lock.acquire()
         if self.mode == 2:
             self.thread.playing = False
@@ -217,7 +217,7 @@ class OSCRecorder(SimpleOSCServer):
             self.thread = None
 
         self.mode = 0
-        print "Bypassed..."
+        print("Bypassed...")
         self.lock.release()
 
     def quit(self):

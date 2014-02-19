@@ -30,7 +30,7 @@ transcoding.py file.
 # 
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 
 import sys, os, os.path, argparse, re, time, imp
@@ -48,7 +48,7 @@ except ImportError:
 
 
 def handle_incoming(address, typetags, args, client_address):
-    print "client", address, typetags, args, client_address
+    print("client", address, typetags, args, client_address)
 
 
 class FilterOSCServer(SimpleOSCServer):
@@ -67,8 +67,8 @@ class FilterOSCServer(SimpleOSCServer):
         """
 
         d = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc_filter-%s..." % (d, chaosc._version.__version__)
-        print "%s: binding to %s:%r" % (d, "0.0.0.0", result.own_port)
+        print("%s: starting up chaosc_filter-%s..." % (d, chaosc._version.__version__))
+        print("%s: binding to %s:%r" % (d, "0.0.0.0", result.own_port))
         SimpleOSCServer.__init__(self, ("0.0.0.0", result.own_port))
         self.filter_address = (result.own_host, result.own_port)
         self.chaosc_address = (result.chaosc_host, result.chaosc_port)
@@ -93,17 +93,17 @@ class FilterOSCServer(SimpleOSCServer):
 
         if result.dump_only:
             self.handler = self.dump_only_handler
-            print "%s: configured verbose=on, filtering and forwarding=off" % d
+            print("%s: configured verbose=on, filtering and forwarding=off" % d)
         elif result.dump:
             self.handler = self.dump_handler
-            print "%s: configured verbose=on, filtering and forwarding=on" % d
+            print("%s: configured verbose=on, filtering and forwarding=on" % d)
         else:
-            print "%s: configured verbose=off, filtering and forwarding=on" % d
+            print("%s: configured verbose=off, filtering and forwarding=on" % d)
 
 
     def load_filters(self):
         d = datetime.now().strftime("%x %X")
-        print "%s: loading filter configs..." % d
+        print("%s: loading filter configs..." % d)
         m = re.compile("filter_(\d+)\.config")
         scene_filters = list()
         for i in os.listdir(self.config_dir):
@@ -114,11 +114,11 @@ class FilterOSCServer(SimpleOSCServer):
 
         scene_filters.sort(key=itemgetter(0))
         if scene_filters[0][0] > len(scene_filters):
-            print "Warning: some filter config files for scenes are missing. " \
-                "Your scene filters will be out of sync!"
+            print("Warning: some filter config files for scenes are missing. " \
+                "Your scene filters will be out of sync!")
 
         for ix, scene_filter in scene_filters:
-            print "%s: loading filter config for scene %s..." % (d, ix)
+            print("%s: loading filter config for scene %s..." % (d, ix))
             lines = open(
                 os.path.join(self.config_dir, scene_filter)).readlines()
             for line in lines:
@@ -127,10 +127,10 @@ class FilterOSCServer(SimpleOSCServer):
                     self.scene[1].append(re.compile(regex))
                 else:
                     self.scene[0].append(re.compile(regex))
-                print "%s: new %s entry = %r..." % (
-                    datetime.now().strftime("%x %X"), liste, regex)
+                print("%s: new %s entry = %r..." % (
+                    datetime.now().strftime("%x %X"), liste, regex))
             self.scenes.append((list(), list()))
-        print "%s: loaded %d scenes" % (d, len(scene_filters))
+        print("%s: loaded %d scenes" % (d, len(scene_filters)))
 
 
     def add_transcoder(self, handler):
@@ -187,20 +187,20 @@ class FilterOSCServer(SimpleOSCServer):
 
         d = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if osc_address == "/scene":
-            print "%s: switching scene from %d to %d" % (
-                d, self._scene_id, args[0])
+            print("%s: switching scene from %d to %d" % (
+                d, self._scene_id, args[0]))
             self.scene_id = args[0]
             self.scene = self.scenes[self.scene_id]
             return
         elif osc_address == "/forward":
             self.scene_id += 1
             self.scene = self.scenes[self.scene_id]
-            print "%s: switching scene forward to %d" % (d, self._scene_id)
+            print("%s: switching scene forward to %d" % (d, self._scene_id))
             return
         elif osc_address == "/back":
             self.scene_id -= 1
             self.scene = self.scenes[self.scene_id]
-            print "%s: switching scene back to %d" % (d, self._scene_id)
+            print("%s: switching scene back to %d" % (d, self._scene_id))
             return
 
         self.handler(osc_address, typetags, args, packet, client_address)
@@ -237,9 +237,9 @@ class FilterOSCServer(SimpleOSCServer):
         else:
             filtered = False
 
-        print "%s: incoming %r, dropped=%r, %r, %r" % (
+        print("%s: incoming %r, dropped=%r, %r, %r" % (
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            osc_address, filtered, typetags, args)
+            osc_address, filtered, typetags, args))
 
         if filtered:
             return
@@ -268,9 +268,9 @@ class FilterOSCServer(SimpleOSCServer):
         :type client_address: tuple
         """
 
-        print "%s: incoming %r, %r, %r" % (
+        print("%s: incoming %r, %r, %r" % (
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            osc_address, typetags, args)
+            osc_address, typetags, args))
 
 
 
@@ -308,7 +308,7 @@ def main():
     if (not result.dump_only and (
         not hasattr(result, "forward_host") or
         not hasattr(result, "forward_port"))):
-        print "Error: please provide forward host and port"
+        print("Error: please provide forward host and port")
         sys.exit(-1)
 
     server = FilterOSCServer(result)

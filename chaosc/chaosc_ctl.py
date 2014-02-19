@@ -22,12 +22,12 @@
 import sys, os, os.path, argparse
 from time import sleep
 from multiprocessing import Pool
-from simpleOSCServer import SimpleOSCServer
+from .simpleOSCServer import SimpleOSCServer
 
 try:
-    from c_osc_lib import OSCMessage
+    from .c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage
+    from .osc_lib  import OSCMessage
 
 
 
@@ -76,8 +76,8 @@ def main():
         msg.appendTypedArg(result.port, "i")
         msg.appendTypedArg(result.token, "s")
         client.send(msg)
-        print "unsubscribe %r:%r from %r:%r" % (
-            result.host, result.port, result.chaosc_host, result.chaosc_port)
+        print("unsubscribe %r:%r from %r:%r" % (
+            result.host, result.port, result.chaosc_host, result.chaosc_port))
     elif "subscribe" == result.subparser_name:
         msg = OSCMessage("/subscribe")
         msg.appendTypedArg(result.host, "s")
@@ -86,8 +86,8 @@ def main():
         if result.label:
             msg.appendTypedArg(result.label, "s")
         client.send(msg)
-        print "subscribe %r:%r to %r:%r" % (
-            result.host, result.port, result.chaosc_host, result.chaosc_port)
+        print("subscribe %r:%r to %r:%r" % (
+            result.host, result.port, result.chaosc_host, result.chaosc_port))
     else:
         raise Exception("unknown command")
         sys.exit(1)

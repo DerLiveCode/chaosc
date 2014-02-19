@@ -53,14 +53,14 @@ ________________________
 # 
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 import types, time
 
 from math import ceil, modf
 from struct import pack, unpack
 from copy import deepcopy
-from itertools import izip
+
 
 
 __all__ = ["OSCError", "OSCBundleFound", "OSCMessage", "OSCBundle",
@@ -78,9 +78,9 @@ class OSCBundleFound(Exception):
     pass
 
 
-float_types = [types.FloatType]
+float_types = [float]
 
-IntTypes = [types.IntType]
+IntTypes = [int]
 
 from calendar import timegm
 NTP_epoch = timegm((1900, 1, 1, 0, 0, 0)) # NTP time started in 1 Jan 1900
@@ -153,7 +153,7 @@ def encode_blob(argument):
     :rtype: str
     """
 
-    if isinstance(argument, basestring):
+    if isinstance(argument, str):
         length = ceil((len(argument)) / 4.0) * 4
         return pack(">i%ds" % length, length, argument)
     else:
@@ -173,9 +173,9 @@ def encode_timetag(timestamp):
     if timestamp > 0:
         fract, secs = modf(timestamp)
         secs = secs - NTP_epoch
-        return pack('>LL', long(secs), long(fract * NTP_units_per_second))
+        return pack('>LL', int(secs), int(fract * NTP_units_per_second))
     else:
-        return pack('>LL', 0L, 1L)
+        return pack('>LL', 0, 1)
 
 
 
@@ -716,7 +716,7 @@ class OSCMessage(object):
 
         :rtype: list
         """
-        return zip(self.typetags, self.args)
+        return list(zip(self.typetags, self.args))
 
     def count(self, val):
         """Returns the count a given value occurs in the OSCMessage's arguments
@@ -852,7 +852,7 @@ class OSCMessage(object):
         """
 
         tmp = list()
-        for typetag, argument in izip(self.typetags, self.args):
+        for typetag, argument in zip(self.typetags, self.args):
             if typetag == "s":
                 tmp.append(encode_string(argument))
             elif typetag == 'i':

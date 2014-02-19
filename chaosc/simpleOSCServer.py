@@ -17,7 +17,7 @@
 # 
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 
 import socket
@@ -27,7 +27,7 @@ import chaosc._version
 from datetime import datetime
 from struct import pack
 from types import TupleType, IntType, StringTypes, FunctionType, MethodType
-from SocketServer import UDPServer, DatagramRequestHandler, ThreadingUDPServer, ForkingUDPServer
+from socketserver import UDPServer, DatagramRequestHandler, ThreadingUDPServer, ForkingUDPServer
 
 try:
     from chaosc.c_osc_lib import *
@@ -54,7 +54,7 @@ class OSCRequestHandler(DatagramRequestHandler):
         len_packet = len(packet)
         try:
             osc_address, typetags, args = decodeOSC(packet, 0, len_packet)
-        except OSCError, e:
+        except OSCError as e:
             return
         self.server.dispatchMessage(osc_address, typetags, args, packet, self.client_address)
 
@@ -80,10 +80,10 @@ class SimpleOSCServer(UDPServer):
         """
         UDPServer.__init__(self, server_address, OSCRequestHandler)
         now = datetime.now().strftime("%x %X")
-        print "%s: starting up SimpleOSCServer-%s..." % (
-            now, chaosc._version.__version__)
-        print "%s: binding to %s:%r" % (
-            now, self.socket.getsockname()[0], server_address[1])
+        print("%s: starting up SimpleOSCServer-%s..." % (
+            now, chaosc._version.__version__))
+        print("%s: binding to %s:%r" % (
+            now, self.socket.getsockname()[0], server_address[1]))
 
 
         self.callbacks = {}
@@ -111,7 +111,7 @@ class SimpleOSCServer(UDPServer):
         :type token: str
         """
         d = datetime.now().strftime("%x %X")
-        print "%s: subscribing to %s:%d..." % (d, chaosc_address[0], chaosc_address[1])
+        print("%s: subscribing to %s:%d..." % (d, chaosc_address[0], chaosc_address[1]))
         msg = OSCMessage("/subscribe")
         msg.appendTypedArg(receiver_address[0], "s")
         msg.appendTypedArg(receiver_address[1], "i")
@@ -171,7 +171,7 @@ class SimpleOSCServer(UDPServer):
         try:
             self.socket.connect(address)
             self.client_address = address
-        except socket.error, e:
+        except socket.error as e:
             self.client_address = None
             raise OSCError("SocketError: %s" % str(e))
 
@@ -184,7 +184,7 @@ class SimpleOSCServer(UDPServer):
 
         try:
             self.socket.sendall(msg.encode_osc())
-        except socket.error, e:
+        except socket.error as e:
             if e[0] in (7, 65):     # 7 = 'no address associated with nodename',  65 = 'no route to host'
                 raise e
             else:
@@ -210,7 +210,7 @@ class SimpleOSCServer(UDPServer):
             while len(binary):
                 sent = self.socket.sendto(binary, address)
                 binary = binary[sent:]
-        except socket.error, e:
+        except socket.error as e:
             if e[0] in (7, 65):     # 7 = 'no address associated with nodename',  65 = 'no route to host'
                 raise e
             else:

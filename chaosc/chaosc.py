@@ -19,7 +19,7 @@
 #
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 import socket
 import sys
@@ -31,7 +31,7 @@ from datetime import datetime
 from time import time
 
 from collections import defaultdict
-from SocketServer import UDPServer, DatagramRequestHandler
+from socketserver import UDPServer, DatagramRequestHandler
 from types import FunctionType, MethodType
 
 try:
@@ -79,11 +79,11 @@ class Chaosc(UDPServer):
         server_address = ("", result.port)
 
         now = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc-%s..." % (
-            now, chaosc._version.__version__)
+        print("%s: starting up chaosc-%s..." % (
+            now, chaosc._version.__version__))
         UDPServer.__init__(self, server_address, DatagramRequestHandler)
-        print "%s: binding to %s:%r" % (
-            now, self.socket.getsockname()[0], server_address[1])
+        print("%s: binding to %s:%r" % (
+            now, self.socket.getsockname()[0], server_address[1]))
 
 
         self.callbacks = {}
@@ -113,7 +113,7 @@ class Chaosc(UDPServer):
     def server_bind(self):
         # Override this method to be sure v6only is false: we want to
         # listen to both IPv4 and IPv6!
-        print "v6 only", self.socket.getsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY)
+        print("v6 only", self.socket.getsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY))
         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
         UDPServer.server_bind(self)
 
@@ -132,9 +132,9 @@ class Chaosc(UDPServer):
             address = (args["host"], int(args["port"]))
             address = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)[-1][4]
             self.targets[address] = args["label"]
-            print "%s: subscribe %r (%s:%s) by config" % (
+            print("%s: subscribe %r (%s:%s) by config" % (
                 datetime.now().strftime("%x %X"), args["label"],
-                address[0], address[1])
+                address[0], address[1]))
 
 
     def add_handler(self, address, callback):
@@ -198,7 +198,7 @@ class Chaosc(UDPServer):
             while len(binary):
                 sent = self.socket.sendto(binary, address)
                 binary = binary[sent:]
-        except socket.error, error:
+        except socket.error as error:
             # 7 = 'no address associated with nodename',
             # 65 = 'no route to host'
             if error[0] in (7, 65):
@@ -247,7 +247,7 @@ class Chaosc(UDPServer):
         target_stats = self.target_stats
         route_stats = self.route_stats
 
-        for address in self.targets.iterkeys():
+        for address in self.targets.keys():
             binary = packet[:]
             try:
                 sendto(binary, address)
@@ -258,8 +258,8 @@ class Chaosc(UDPServer):
                 route_stat = route_stats[(client_address[0], address[0])]
                 route_stat[0] += 1
                 route_stat[1] = now
-            except serr, error:
-                print error
+            except serr as error:
+                print(error)
 
 
     def __stats_handler(self, addr, tags, data, client_address):
@@ -268,7 +268,7 @@ class Chaosc(UDPServer):
         """
 
         reply = OSCBundle("")
-        for (host, port), label in self.targets.iteritems():
+        for (host, port), label in self.targets.items():
             tmp = OSCMessage("/st")
             tmp.appendTypedArg(host, "s")
             tmp.appendTypedArg(label, "s")
@@ -276,13 +276,13 @@ class Chaosc(UDPServer):
             tmp.appendTypedArg(stat[0], "i")
             tmp.appendTypedArg(stat[1], "d")
             reply.append(tmp)
-        for source, stat in self.source_stats.iteritems():
+        for source, stat in self.source_stats.items():
             tmp = OSCMessage("/ss")
             tmp.appendTypedArg(source, "s")
             tmp.appendTypedArg(stat[0], "i")
             tmp.appendTypedArg(stat[1], "d")
             reply.append(tmp)
-        for (source, target), stat in self.route_stats.iteritems():
+        for (source, target), stat in self.route_stats.items():
             tmp = OSCMessage("/sr")
             tmp.appendTypedArg(source, "s")
             tmp.appendTypedArg(target, "s")
@@ -308,28 +308,28 @@ class Chaosc(UDPServer):
             if args[2] != self.token:
                 raise IndexError()
         except IndexError:
-            print "subscription attempt from %r: token wrong" % client_address
+            print("subscription attempt from %r: token wrong" % client_address)
             return
         address = args[:2]
         try:
             r = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)
-            print "addrinfo", r
+            print("addrinfo", r)
             if len(r) == 2:
                 address = r[1][4]
             try:
-                print "%s: subscribe %r (%s:%d) by %s:%d" % (
+                print("%s: subscribe %r (%s:%d) by %s:%d" % (
                     datetime.now().strftime("%x %X"), args[3], address[0],
-                    address[1], client_address[0], client_address[1])
+                    address[1], client_address[0], client_address[1]))
                 self.targets[tuple(address)] =  args[3]
             except IndexError:
                 self.targets[tuple(address)] =  ""
-                print "%s: subscribe (%s:%d) by %s:%d" % (
+                print("%s: subscribe (%s:%d) by %s:%d" % (
                     datetime.now().strftime("%x %X"), address[0], address[1],
-                    client_address[0], client_address[1])
-        except socket.error, error:
-            print error
-            print "subscription attempt from %r: host %r not usable" % (
-                client_address, address[0])
+                    client_address[0], client_address[1]))
+        except socket.error as error:
+            print(error)
+            print("subscription attempt from %r: host %r not usable" % (
+                client_address, address[0]))
 
 
     def __unsubscription_handler(self, address, typetags, args, client_address):
@@ -344,15 +344,15 @@ class Chaosc(UDPServer):
             if args[2] != self.token:
                 raise IndexError()
         except IndexError: # token not sent or wrong token
-            print "subscription attempt from %r: token wrong" % client_address
+            print("subscription attempt from %r: token wrong" % client_address)
             return
 
         try:
             address = tuple(args[:2])
             del self.targets[address[0]]
-            print "unsubscription: %r, %r from %r" % (
+            print("unsubscription: %r, %r from %r" % (
                 datetime.now().strftime("%x %X"), repr(address),
-                repr(client_address))
+                repr(client_address)))
         except KeyError:
             pass
 
@@ -361,7 +361,7 @@ class Chaosc(UDPServer):
         """Handle incoming requests
         """
         packet = request[0]
-        print "packet", repr(packet), client_address
+        print("packet", repr(packet), client_address)
         len_packet = len(packet)
         try:
             # using special decoding procedure for speed

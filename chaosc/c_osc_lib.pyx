@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
 from __future__ import absolute_import
@@ -428,11 +428,6 @@ cdef class OSCMessage(object):
         self.args.__delitem__(i)
         self.typetags.__delitem__(i)
 
-    def __delslice__(self, i, j):
-        """Removes the indicated slice
-        """
-        self.args.__delslice__(i, j)
-        self.typetags.__delslice__(i, j)
 
     def __setitem__(self, index, arguments):
         """Set indicatated argument (or slice) to a new value.

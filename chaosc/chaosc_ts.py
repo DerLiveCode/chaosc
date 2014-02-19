@@ -21,10 +21,10 @@
 import random, socket, time, argparse, sys
 from copy import copy
 try:
-    from c_osc_lib import *
-except ImportError, e:
-    print e
-    from osc_lib import *
+    from .c_osc_lib import *
+except ImportError as e:
+    print(e)
+    from .osc_lib import *
 
 from multiprocessing import Pool
 
@@ -52,7 +52,7 @@ def loop(ix):
 
         try:
             sent = sock.sendall(binary)
-        except socket.error, e:
+        except socket.error as e:
             if e[0] in (7, 65):     # 7 = 'no address associated with nodename',  65 = 'no route to host'
                 raise e
             else:
@@ -69,4 +69,4 @@ def main():
     global result
 
     p = Pool(result.num_processes)
-    result = p.map(loop, range(result.num_processes))
+    result = p.map(loop, list(range(result.num_processes)))
