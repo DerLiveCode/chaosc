@@ -3,29 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Chaosc's documentation!
-==================================
+.. toctree::
+   :maxdepth: 2
 
-Homepage
---------
-
-This documentation can be read online here: http://derlivecode.github.com/chaosc.
-You can also generate this in a lot of different output formats with sphinx, e.g pdf::
-
-    cd chaosc/docs
-    make latexpdf
-
-The git repository is hosted by github here: https://github.com/DerLiveCode/chaosc
-
-Licenses
---------
-
-This documentation is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License.
-
-Chaosc is licensed under the GPL-3.
+************************
+The chaosc framework 0.1
+************************
 
 Introduction
-------------
+============
+
+Abstract
+--------
 
 The chaosc framework was developed for a theatre project called "Der Live-Code".
 It consists of several tools and a custom OSC library.
@@ -46,8 +35,27 @@ Below we'll prove, that it's also easy to use.
 For now it supports the OSC 1.0 spec, and is optimized for UDP only. TCP is not supported.
 Chaosc runs in dualstack mode which have to be ironed out a bit more.
 
-.. toctree::
-   :maxdepth: 2
+
+Links and code
+--------------
+
+This documentation can be read online here: http://derlivecode.github.com/chaosc.
+
+You can also generate this in a lot of different output formats with sphinx, e.g pdf::
+
+    cd chaosc/docs
+    make latexpdf
+
+The source code of the chaosc framework and other used software and sketches are hosted in repositories by github on the DerLiveCode organization site: https://github.com/DerLiveCode/chaosc
+
+Licenses
+--------
+
+This documentation is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License.
+
+The chaosc framework is licensed under the GPL-3.
+
+
 
 
 Tools overview
@@ -105,9 +113,10 @@ Dependencies should be automatically pulled in when installing chaosc. If you
 prefer using another installation method for the dependencies, install these
 packages.
 
-+ python-2.7.x
++ >=python-2.7.3
 + cython
 + pyserial
++ Sphinx
 
 Installation using easy_install or pip
 --------------------------------------
@@ -129,7 +138,9 @@ Install into system path::
 
     sudo python setup.py install
 
-Local developer mode installation::
+or install in developer mode, which uses your working copy and symlinks
+chaosc in system path. It's nice since whenever you pull from remote, you're
+automagically using the current codebase without reinstallation.::
 
     sudo python setup.py develop
 
