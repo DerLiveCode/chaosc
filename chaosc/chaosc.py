@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
 from __future__ import absolute_import
@@ -201,7 +201,7 @@ class Chaosc(UDPServer):
         except socket.error, error:
             # 7 = 'no address associated with nodename',
             # 65 = 'no route to host'
-            if error[0] in (7, 65): 
+            if error[0] in (7, 65):
                 raise error
             else:
                 raise OSCError("while sending to %s: %s" % (str(address),

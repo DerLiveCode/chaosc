@@ -31,7 +31,8 @@ setup(
 
     install_requires=[
         "Cython",
-        "pyserial"],
+        "pyserial",
+        "Sphinx"],
 
     # installing unzipped
     zip_safe = False,

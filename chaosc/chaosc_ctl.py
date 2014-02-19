@@ -15,8 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
-# Copyright (C) 2012-2013 Stefan Kögl
+#
+# Copyright (C) 2012-2013 Stefan KÃ¶gl
 
 
 import sys, os, os.path, argparse
@@ -32,7 +32,7 @@ except ImportError:
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='chaosc_cli')
+    parser = argparse.ArgumentParser(prog='chaosc_ctl')
     parser.add_argument("-H", '--chaosc_host', required=True,
         type=str, help='host of chaosc instance to control')
     parser.add_argument("-p", '--chaosc_port', required=True,
@@ -41,11 +41,16 @@ def main():
         type=str, default="sekret",
         help='token to authorize ctl commands, default="sekret"')
 
+    # TODO: optional named flag in subscribe parser does not work, but placing it here is also awkward.
+    parser.add_argument('-l', '--label', type=str,
+        help='optional subscription label')
+
     subparsers = parser.add_subparsers(dest="subparser_name",
         help='chaosc server commands')
 
     parser_subscribe = subparsers.add_parser('subscribe',
         help='subscribe a target')
+
     parser_subscribe.add_argument('host', metavar="url",
         type=str, help='hostname')
     parser_subscribe.add_argument('port', metavar="port",
@@ -64,13 +69,12 @@ def main():
     result = parser.parse_args(sys.argv[1:])
 
     client = SimpleOSCServer(("", 7777))
-
+    client.connect((result.chaosc_host, result.chaosc_port))
     if "unsubscribe" == result.subparser_name:
         msg = OSCMessage("/unsubscribe")
         msg.appendTypedArg(result.host, "s")
         msg.appendTypedArg(result.port, "i")
         msg.appendTypedArg(result.token, "s")
-        client.connect((result.chaosc_host, result.chaosc_port))
         client.send(msg)
         print "unsubscribe %r:%r from %r:%r" % (
             result.host, result.port, result.chaosc_host, result.chaosc_port)
@@ -79,7 +83,8 @@ def main():
         msg.appendTypedArg(result.host, "s")
         msg.appendTypedArg(result.port, "i")
         msg.appendTypedArg(result.token, "s")
-        client.connect((result.chaosc_host, result.chaosc_port))
+        if result.label:
+            msg.appendTypedArg(result.label, "s")
         client.send(msg)
         print "subscribe %r:%r to %r:%r" % (
             result.host, result.port, result.chaosc_host, result.chaosc_port)
