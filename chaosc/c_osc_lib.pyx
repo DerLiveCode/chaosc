@@ -25,7 +25,7 @@ import types, time
 from math import ceil, modf
 from struct import pack, unpack
 from copy import deepcopy
-from itertools import izip
+from itertools import zip
 
 __all__ = ["OSCError", "OSCBundleFound", "OSCMessage", "OSCBundle", "decode_osc",
     "proxy_decode_osc", "encode_string", "decode_osc"]
