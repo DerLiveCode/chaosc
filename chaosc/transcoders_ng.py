@@ -29,6 +29,7 @@ except ImportError:
 
 
 class ITranscoder(object):
+    """Interface for transcoders"""
 
     def match(self, osc_address):
         raise NotImplementedError()
@@ -38,35 +39,43 @@ class ITranscoder(object):
 
 
 class IConverter(object):
+    """Interface for converters"""
+
     def __call__(self, value):
         raise NotImplementedError()
 
 
 class IntConverter(IConverter):
+    """converts values to int"""
 
     def __call__(self, value):
         return int(value)
 
 
 class FloatConverter(IConverter):
+    """converts values to float"""
 
     def __call__(self, value):
         return float(value)
 
 
 class StringConverter(IConverter):
+    """converts values to strings"""
 
     def __call__(self, value):
         return str(value)
 
 
 class KeepConverter(IConverter):
+    """does not convert, just returns the value as given"""
 
     def __call__(self, value):
         return value
 
 
 class IntRange2FloatConverter(IConverter):
+    """converts integer values with a given max value to a float between 0.0-1.0"""
+
     def __init__(self, max_value):
         self.max_value = max_value
 
@@ -75,15 +84,19 @@ class IntRange2FloatConverter(IConverter):
 
 
 class FloatRange2IntConverter(IConverter):
+    """converts float values between 0.0 and 1.0 to an integer in the range 0-max value. This is the opposite conversion to IntRange2FloatConverter"""
+
     def __init__(self, max_value):
         self.max_value = max_value
 
     def __call__(self, value):
-        return int(value / self.max_value)
+        return int(value * self.max_value)
 
 
 
 class AddressTranscoder(ITranscoder):
+    """transcodes osc address"""
+
     def __init__(self, from_addr, to_addr):
         super(AddressTranscoder, self).__init__()
         self.from_addr = from_addr
@@ -102,6 +115,8 @@ class AddressTranscoder(ITranscoder):
 
 
 class DampingTranscoder(ITranscoder):
+    """transcodes the values of osc messages with a damping factor"""
+
     def __init__(self, regrex_fmt, factor):
         super(DampingTranscoder, self).__init__()
         self.regrex_fmt = re.compile(regrex_fmt)
@@ -118,10 +133,12 @@ class DampingTranscoder(ITranscoder):
 
 
 class AddressRegExChanger(ITranscoder):
-    def __init__(self, regrex_fmt, to):
+    """transcodes osc message addresses to a new address representation and uses match group items in the to_addr format"""
+
+    def __init__(self, regrex_fmt, to_addr):
         super(AddressRegExChanger, self).__init__()
         self.regrex_fmt = re.compile(regrex_fmt)
-        self.to_addr = to
+        self.to_addr = to_addr
         self.groups = None
 
     def match(self, osc_address):
@@ -141,6 +158,12 @@ class AddressRegExChanger(ITranscoder):
 
 
 class MappingTranscoder(ITranscoder):
+    """fine granular transcoding with regular expression for the osc address, and mapping converters for each argument
+
+    you can exactly specify which value grepped from the regular expression groups or arguments should be used for the
+    new message
+    """
+
     def __init__(self, regex_fmt, to_fmt, mappers, **kwargs):
         super(MappingTranscoder, self).__init__()
         self.regex = re.compile(regex_fmt)
