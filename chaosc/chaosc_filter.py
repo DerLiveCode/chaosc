@@ -28,7 +28,7 @@ transcoding.py file.
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2012-2013 Stefan Kögl
+# Copyright (C) 2012-2014 Stefan Kögl
 
 from __future__ import absolute_import
 
