@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
 from __future__ import absolute_import
@@ -28,7 +28,7 @@ from copy import deepcopy
 from itertools import izip
 
 __all__ = ["OSCError", "OSCBundleFound", "OSCMessage", "OSCBundle", "decode_osc",
-    "proxy_decode_osc", "encode_string", "decode_osc"]
+    "proxy_decode_osc", "encode_string"]
 
 class OSCError(Exception):
     """Base Class for all OSC-related errors

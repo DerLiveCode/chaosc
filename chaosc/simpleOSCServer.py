@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
 from __future__ import absolute_import
@@ -53,7 +53,7 @@ class OSCRequestHandler(DatagramRequestHandler):
         packet = self.packet
         len_packet = len(packet)
         try:
-            osc_address, typetags, args = decodeOSC(packet, 0, len_packet)
+            osc_address, typetags, args = decode_osc(packet, 0, len_packet)
         except OSCError, e:
             return
         self.server.dispatchMessage(osc_address, typetags, args, packet, self.client_address)
