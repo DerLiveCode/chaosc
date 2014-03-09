@@ -7,7 +7,7 @@ be used with other osc compatible gear.
 
 We provide here osc message filtering based on python regex defined in a file
 and a very flexible transcoding toolchain, but it's up to your python skills
-to master them. The TranscoderBaseHandler subclasses should be defined in the 
+to master them. The TranscoderBaseHandler subclasses should be defined in the
 appropriate python module you place in the config directory. Please refer for
 a howto/examples to our comprehensive docs or look into the provided example
 transcoding.py file.
@@ -27,7 +27,7 @@ transcoding.py file.
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
 from __future__ import absolute_import
@@ -68,8 +68,8 @@ class FilterOSCServer(SimpleOSCServer):
 
         d = datetime.now().strftime("%x %X")
         print "%s: starting up chaosc_filter-%s..." % (d, chaosc._version.__version__)
-        print "%s: binding to %s:%r" % (d, "0.0.0.0", result.own_port)
-        SimpleOSCServer.__init__(self, ("0.0.0.0", result.own_port))
+        print "%s: binding to %s:%r" % (d, result.own_host, result.own_port)
+        SimpleOSCServer.__init__(self, (result.own_host, result.own_port))
         self.filter_address = (result.own_host, result.own_port)
         self.chaosc_address = (result.chaosc_host, result.chaosc_port)
         self.forward_address = (result.forward_host, result.forward_port)
@@ -89,7 +89,7 @@ class FilterOSCServer(SimpleOSCServer):
 
         self.load_filters()
         self.subscribe_me(self.chaosc_address, self.filter_address,
-            result.token, "chaosc_filter")
+            result.token, result.subscriber_name)
 
         if result.dump_only:
             self.handler = self.dump_only_handler
@@ -286,13 +286,14 @@ def main():
         type=int, help='my port')
     parser.add_argument('-c', "--config_dir", default="~/.config/chaosc",
         help="config directory. default = '~/.config/chaosc'")
-
     parser.add_argument("-f", '--forward_host', metavar="HOST",
         type=str, help='host of client where the message will be sento to')
     parser.add_argument("-F", '--forward_port', metavar="PORT",
         type=int, help='port of client where the message will be sento to')
     parser.add_argument('-t', '--token', type=str, default="sekret",
         help='token to authorize ctl commands, default="sekret"')
+    parser.add_argument('-s', '--subscriber_name', type=str, default=os.path.basename(sys.argv[0]),
+        help="which label to use as subscriber to chaosc, default=\"this programs's\" name")
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-d', '--dump', action="store_true",
         help='if True, this client dumps all received msgs to stdout')

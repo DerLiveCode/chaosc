@@ -64,7 +64,7 @@ class Chaosc(UDPServer):
     max_packet_size = 16*2**20
     address_family = socket.AF_INET6
 
-    def __init__(self, result):
+    def __init__(self, args):
         """Instantiate an OSCServer.
         server_address ((host, port) tuple): the local host & UDP-port
         the server listens on
@@ -76,7 +76,7 @@ class Chaosc(UDPServer):
         :type token: str
         """
 
-        server_address = ("", result.port)
+        server_address = ("", args.port)
 
         now = datetime.now().strftime("%x %X")
         print "%s: starting up chaosc-%s..." % (
@@ -85,11 +85,10 @@ class Chaosc(UDPServer):
         print "%s: binding to %s:%r" % (
             now, self.socket.getsockname()[0], server_address[1])
 
-
+        self.args = args
         self.callbacks = {}
-        self.config_dir = result.config_dir
 
-        self.token = result.token
+        self.token = args.token
 
         self.socket.setsockopt(socket.SOL_SOCKET,
             socket.SO_SNDBUF, self.max_packet_size)
@@ -106,7 +105,7 @@ class Chaosc(UDPServer):
         self.add_handler('unsubscribe', self.__unsubscription_handler)
         self.add_handler('/stats', self.__stats_handler)
 
-        if result.subscriptions:
+        if args.subscription_file:
             self.__load_subscriptions()
 
 
@@ -124,8 +123,7 @@ class Chaosc(UDPServer):
         :param path: the directory in which the targets.config file resists
         :type path: str
         """
-        lines = open(
-            os.path.join(self.config_dir, "targets.config")).readlines()
+        lines = open(self.args.subscription_file).readlines()
         for line in lines:
             data = line.strip("\n").split(";")
             args = dict([arg.split("=") for arg in data])
@@ -387,10 +385,8 @@ def main():
         help='token to authorize ctl commands, default="sekret"')
     parser.add_argument('-p', '--port', type=int, default=7110,
         help='port of chaosc instance, default=7110')
-    parser.add_argument('-s', "--subscriptions", action="store_true",
-        default=False, help="load subscriptions")
-    parser.add_argument('-c', "--config_dir", type=str,
-        default="~/.config/chaosc", help="config directory")
-    result = parser.parse_args(sys.argv[1:])
-    server = Chaosc(result)
+    parser.add_argument('-s', "--subscription_file",
+        help="load subscriptions")
+    args = parser.parse_args(sys.argv[1:])
+    server = Chaosc(args)
     server.serve_forever()
