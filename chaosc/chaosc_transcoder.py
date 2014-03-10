@@ -27,7 +27,7 @@ skills to master them.
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-import sys, os, os.path, argparse, re, time, imp
+import sys, os, os.path, argparse, re, time, imp, atexit
 
 from operator import itemgetter
 from datetime import datetime
@@ -70,7 +70,7 @@ class ChaoscTranscoder(SimpleOSCServer):
             args.config_file, a, b, c).transcoders
 
         if args.subscribe:
-            self.subscribe_me(self.chaosc_address, self.filter_address,
+            self.subscribe_me(self.chaosc_address, (args.own_host, args.own_port),
                 args.token, args.subscriber_label)
 
 
@@ -85,7 +85,7 @@ class ChaoscTranscoder(SimpleOSCServer):
 
     def dispatchMessage(self, osc_address, typetags, args, packet,
         client_address):
-        """Handles this filtering, transcoding steps and forwards the result
+        """Handles transcoding and forwards the result
 
         :param osc_address: the OSC address string.
         :type osc_address: str
@@ -110,6 +110,10 @@ class ChaoscTranscoder(SimpleOSCServer):
                 break
 
         self.socket.sendto(packet, self.forward_address)
+
+    def unsubscribe(self):
+        self.unsubscribe_me(self.chaosc_address, (self.args.own_host, self.args.own_port),
+            self.args.token)
 
 
 def main():
@@ -148,5 +152,6 @@ def main():
     args = parser.parse_args(sys.argv[1:])
 
     server = ChaoscTranscoder(args)
+    atexit.register(server.unsubscribe)
     server.serve_forever()
 

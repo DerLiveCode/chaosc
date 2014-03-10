@@ -116,24 +116,6 @@ class Chaosc(UDPServer):
         UDPServer.server_bind(self)
 
 
-    def __load_subscriptions(self):
-        """Loads predefined subcriptions from a file in given config directory
-
-        :param path: the directory in which the targets.config file resists
-        :type path: str
-        """
-        lines = open(self.args.subscription_file).readlines()
-        for line in lines:
-            data = line.strip("\n").split(";")
-            args = dict([arg.split("=") for arg in data])
-            address = (args["host"], int(args["port"]))
-            address = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)[-1][4]
-            self.targets[address] = args["label"]
-            print "%s: subscribe %r (%s:%s) by config" % (
-                datetime.now().strftime("%x %X"), args["label"],
-                address[0], address[1])
-
-
     def add_handler(self, address, callback):
         """Registers a handler for an OSC-address
 
@@ -205,6 +187,39 @@ class Chaosc(UDPServer):
                     str(error)))
 
 
+    def address(self):
+        """Returns a (host,port) tuple of the local address this server
+        is bound to or None if not bound to any address.
+        """
+        try:
+            return self.socket.getsockname()
+        except socket.error:
+            return None
+
+
+    def process_request(self, request, client_address):
+        """Handle incoming requests
+        """
+        packet = request[0]
+        #print "packet", repr(packet), client_address
+        len_packet = len(packet)
+        try:
+            # using special decoding procedure for speed
+            osc_address, typetags, args = proxy_decode_osc(packet, 0, len_packet)
+        except OSCError:
+            return
+        except OSCBundleFound:
+            # by convention we only look for OSCMessages to control chaosc, we
+            # can simply forward any bundles found - it's not for us
+            self.__proxy_handler(packet, client_address)
+        else:
+            try:
+                self.callbacks[osc_address](osc_address, typetags, args,
+                    client_address)
+            except KeyError:
+                self.__proxy_handler(packet, client_address)
+
+
     def __str__(self):
         """Returns a string containing this Server's Class-name,
         software-version and local bound address (if any)
@@ -220,14 +235,26 @@ class Chaosc(UDPServer):
 
         return out
 
-    def address(self):
-        """Returns a (host,port) tuple of the local address this server
-        is bound to or None if not bound to any address.
+
+    def __load_subscriptions(self):
+        """Loads predefined subcriptions from a file in given config directory
+
+        :param path: the directory in which the targets.config file resists
+        :type path: str
         """
-        try:
-            return self.socket.getsockname()
-        except socket.error:
-            return None
+        lines = open(self.args.subscription_file).readlines()
+        for line in lines:
+            data = line.strip("\n").split(";")
+            args = dict([arg.split("=") for arg in data])
+            host = args["host"]
+            port = int(args["port"])
+            label = args["label"]
+            try:
+                self.__subscribe(host, port, label, None)
+            except socket.gaierror, e:
+                print "%s: subscription by config failed of host '%s:%d' - %s" % (
+                    datetime.now().strftime("%x %X"), host, port, e)
+
 
     def __proxy_handler(self, packet, client_address):
         """Sends incoming osc messages to subscribed receivers
@@ -291,6 +318,46 @@ class Chaosc(UDPServer):
         reply.append(size)
         self.sendto(reply, tuple(data[:2]))
 
+
+    def __authorize(self, token):
+        if token != self.token:
+            raise ValueError("unauthorized access attempt!")
+
+
+    def __subscribe(self, host, port, label=None, client_address=None):
+        addrinfo = socket.getaddrinfo(host, port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)
+
+        host, port = addrinfo[-1][4][:2]
+
+        if (host, port) in self.targets:
+            print "%s: subscription of '%s:%d' failed - already subscribed" % (
+                datetime.now().strftime("%x %X"), host, port)
+            return
+
+        self.targets[(host, port)] = label is not None and label or ""
+        if client_address is not None:
+            print "%s: subscription of '%s:%d' by '%s:%d' with label %r" % (
+                datetime.now().strftime("%x %X"), host, port, client_address[0],
+                client_address[1], label)
+        else:
+            print "%s: subscription of '%s:%d' by config with label %r" % (
+                datetime.now().strftime("%x %X"), host, port, label)
+
+    def __unsubscribe(self, host, port, client_address=None):
+        addrinfo = socket.getaddrinfo(host, port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)
+
+        host, port = addrinfo[-1][4][:2]
+
+        del self.targets[(host, port)]
+        if client_address is not None:
+            print "%s: unsubscription of '%s:%d' by '%s:%d'" % (
+                datetime.now().strftime("%x %X"), host, port, client_address[0],
+                client_address[1])
+        else:
+            print "%s: subscription of '%s:%d'" % (
+                datetime.now().strftime("%x %X"), host, port)
+
+
     def __subscription_handler(self, addr, typetags, args, client_address):
         """handles a target subscription.
 
@@ -301,32 +368,21 @@ class Chaosc(UDPServer):
         only subscription requests with valid host and token will be granted.
         """
 
+        host, port = args[:2]
         try:
-            if args[2] != self.token:
-                raise IndexError()
-        except IndexError:
-            print "subscription attempt from %r: token wrong" % client_address
+            self.__authorize(args[2])
+        except ValueError, e:
+            print "%s: subscription by config failed of host '%s:%d' - %s" % (
+                datetime.now().strftime("%x %X"), host, port, e)
             return
-        address = args[:2]
+
+        label = len(args) == 4 and args[3] or None
+
         try:
-            r = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)
-            #print "addrinfo", r
-            if len(r) == 2:
-                address = r[-1][4]
-            try:
-                print "%s: subscribe %r (%s:%d) by %s:%d" % (
-                    datetime.now().strftime("%x %X"), args[3], address[0],
-                    address[1], client_address[0], client_address[1])
-                self.targets[tuple(address)] = args[3]
-            except IndexError:
-                self.targets[tuple(address)] = ""
-                print "%s: subscribe (%s:%d) by %s:%d" % (
-                    datetime.now().strftime("%x %X"), address[0], address[1],
-                    client_address[0], client_address[1])
-        except socket.error, error:
-            print error
-            print "subscription attempt from %r: host %r not usable" % (
-                client_address, address[0])
+            self.__subscribe(host, port, label, client_address)
+        except socket.gaierror, e:
+            print "%s: subscription by config failed of host '%s:%d' - %s" % (
+                datetime.now().strftime("%x %X"), host, port, e)
 
 
     def __unsubscription_handler(self, address, typetags, args, client_address):
@@ -337,48 +393,23 @@ class Chaosc(UDPServer):
 
         Only unsubscription requests with valid host and token will be granted.
         """
+
+        host, port = args[:2]
         try:
-            if args[2] != self.token:
-                raise IndexError()
-        except IndexError: # token not sent or wrong token
-            print "subscription attempt from %r: token wrong" % client_address
+            self.__authorize(args[2])
+        except ValueError, e:
+            print "%s: unsubscription by config failed of host '%s:%d' - %s" % (
+                datetime.now().strftime("%x %X"), host, port, e)
             return
 
-        address = args[:2]
+        label = len(args) == 4 and args[3] or None
         try:
-            if len(r) == 2:
-                address = r[-1][4]
-            r = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)
-
-            del self.targets[address[0]]
-            print "unsubscription: %r, %r from %r" % (
-                datetime.now().strftime("%x %X"), repr(address),
-                repr(client_address))
-        except KeyError:
-            pass
+            self.__unsubscribe(host, port, client_address)
+        except socket.gaierror, e:
+            print "%s: subscription by config failed of host '%s:%d' - %s" % (
+                datetime.now().strftime("%x %X"), host, port, e)
 
 
-    def process_request(self, request, client_address):
-        """Handle incoming requests
-        """
-        packet = request[0]
-        #print "packet", repr(packet), client_address
-        len_packet = len(packet)
-        try:
-            # using special decoding procedure for speed
-            osc_address, typetags, args = proxy_decode_osc(packet, 0, len_packet)
-        except OSCError:
-            return
-        except OSCBundleFound:
-            # by convention we only look for OSCMessages to control chaosc, we
-            # can simply forward any bundles found - it's not for us
-            self.__proxy_handler(packet, client_address)
-        else:
-            try:
-                self.callbacks[osc_address](osc_address, typetags, args,
-                    client_address)
-            except KeyError:
-                self.__proxy_handler(packet, client_address)
 
 
 def main():

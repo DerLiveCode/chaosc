@@ -33,22 +33,13 @@ transcoding.py file.
 from __future__ import absolute_import
 
 
-import sys, os, os.path, argparse, re, time, imp
+import sys, os, os.path, argparse, re, atexit
 
 from operator import itemgetter
 from datetime import datetime
 from chaosc.simpleOSCServer import SimpleOSCServer
-from chaosc.config import transcoding_config
+
 import chaosc._version
-
-try:
-    from chaosc.c_osc_lib import OSCMessage
-except ImportError:
-    from chaosc.osc_lib  import OSCMessage
-
-
-def handle_incoming(address, typetags, args, client_address):
-    print "client", address, typetags, args, client_address
 
 
 class FilterOSCServer(SimpleOSCServer):
@@ -66,50 +57,36 @@ class FilterOSCServer(SimpleOSCServer):
         :type result: namespace object
         """
 
-        d = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc_filter-%s..." % (d, chaosc._version.__version__)
-        print "%s: binding to %s:%r" % (d, args.own_host, args.own_port)
+        now = datetime.now().strftime("%x %X")
+        print "%s: starting up chaosc_filter-%s..." % (now, chaosc._version.__version__)
+        print "%s: binding to %s:%r" % (now, args.own_host, args.own_port)
         SimpleOSCServer.__init__(self, (args.own_host, args.own_port))
         self.args = args
-        self.filter_address = (args.own_host, args.own_port)
+        self.own_address = (args.own_host, args.own_port)
         self.chaosc_address = (args.chaosc_host, args.chaosc_port)
         self.forward_address = (args.forward_host, args.forward_port)
         self.token = args.token
         self.config_dir = args.config_dir
-        self.dump_only = args.dump_only
-
-        a,b,c = imp.find_module(args.transcoding_config, [args.config_dir,])
-        self.transcoders = imp.load_module(
-            self.args.transcoding_config, a, b, c).transcoders
 
         self.scene = (list(), list())
         self.scenes = [self.scene,]
         self.scene_id = 0
 
         self.load_filters()
-        self.subscribe_me(self.chaosc_address, self.filter_address,
-            args.token, args.subscriber_name)
-
-        if args.dump_only:
-            self.handler = self.dump_only_handler
-            print "%s: configured verbose=on, filtering and forwarding=off" % d
-        elif args.dump:
-            self.handler = self.dump_handler
-            print "%s: configured verbose=on, filtering and forwarding=on" % d
-        else:
-            print "%s: configured verbose=off, filtering and forwarding=on" % d
+        self.subscribe_me(self.chaosc_address, self.own_address,
+            args.token, args.subscriber_label)
 
 
     def load_filters(self):
-        d = datetime.now().strftime("%x %X")
-        print "%s: loading filter configs..." % d
-        m = re.compile("filter_(\d+)\.config")
+        now = datetime.now().strftime("%x %X")
+        print "%s: loading filter configs..." % now
+        regex = re.compile("filter_(\d+)\.config")
         scene_filters = list()
         for i in os.listdir(self.config_dir):
-            r = m.match(i)
-            if (r is not None and
+            regex_res = regex.match(i)
+            if (regex_res is not None and
                 os.path.isfile(os.path.join(self.config_dir, i))):
-                scene_filters.append((r.group(1), i))
+                scene_filters.append((regex_res.group(1), i))
         if not scene_filters:
             return
 
@@ -119,7 +96,7 @@ class FilterOSCServer(SimpleOSCServer):
                 "Your scene filters will be out of sync!"
 
         for ix, scene_filter in scene_filters:
-            print "%s: loading filter config for scene %s..." % (d, ix)
+            print "%s: loading filter config for scene %s..." % (now, ix)
             lines = open(
                 os.path.join(self.config_dir, scene_filter)).readlines()
             for line in lines:
@@ -131,23 +108,8 @@ class FilterOSCServer(SimpleOSCServer):
                 print "%s: new %s entry = %r..." % (
                     datetime.now().strftime("%x %X"), liste, regex)
             self.scenes.append((list(), list()))
-        print "%s: loaded %d scenes" % (d, len(scene_filters))
+        print "%s: loaded %d scenes" % (now, len(scene_filters))
 
-
-    def add_transcoder(self, handler):
-        """Adds a transcoder to chaosc.
-
-        :param handler: an TranscoderBaseHandler implementation
-        :type handler: ITranscoderHandler
-        """
-        self.transcoders.append(handler)
-
-
-    def transcode(self, osc_address, typetags, args, packet, client_address):
-        for transcoder in self.transcoders:
-            if transcoder.match(osc_address):
-                return transcoder(osc_address, typetags, args)
-        return packet
 
 
     def filter(self, osc_address):
@@ -186,134 +148,64 @@ class FilterOSCServer(SimpleOSCServer):
         :type client_address: tuple
         """
 
-        d = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if osc_address == "/scene":
             print "%s: switching scene from %d to %d" % (
-                d, self._scene_id, args[0])
+                now, self.scene_id, args[0])
             self.scene_id = args[0]
             self.scene = self.scenes[self.scene_id]
             return
         elif osc_address == "/forward":
             self.scene_id += 1
             self.scene = self.scenes[self.scene_id]
-            print "%s: switching scene forward to %d" % (d, self._scene_id)
+            print "%s: switching scene forward to %d" % (now, self.scene_id)
             return
         elif osc_address == "/back":
             self.scene_id -= 1
             self.scene = self.scenes[self.scene_id]
-            print "%s: switching scene back to %d" % (d, self._scene_id)
+            print "%s: switching scene back to %d" % (now, self.scene_id)
             return
 
-        self.handler(osc_address, typetags, args, packet, client_address)
-
-    def handler(self, osc_address, typetags, args, packet, client_address):
         if not self.filter(osc_address):
             return
 
-        self.socket.sendto(self.transcode(osc_address, typetags, args, packet,
-            client_address), self.forward_address)
+        self.socket.sendto(packet, self.forward_address)
 
-
-    def dump_handler(self, osc_address, typetags, args, packet, client_address):
-        """Handles this filtering, transcoding steps and forwards the result
-
-        :param osc_address: the OSC address string.
-        :type osc_address: str
-
-        :param typetags: the typetags of args
-        :type typetags: list
-
-        :param args: the osc message args
-        :type args: list
-
-        :param packet: the binary representation of a osc message
-        :type packet: str
-
-        :param client_address: (host, port) of the requesting client
-        :type client_address: tuple
-        """
-
-        if self.filter(osc_address):
-            filtered = True
-        else:
-            filtered = False
-
-        print "%s: incoming %r, dropped=%r, %r, %r" % (
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            osc_address, filtered, typetags, args)
-
-        if filtered:
-            return
-
-        self.socket.sendto(
-            self.transcode(osc_address, typetags, args, packet, client_address),
-            self.forward_address)
-
-    def dump_only_handler(self, osc_address, typetags, args, packet,
-        client_address):
-        """Handles this filtering, transcoding steps and forwards the result
-
-        :param osc_address: the OSC address string.
-        :type osc_address: str
-
-        :param typetags: the typetags of args
-        :type typetags: list
-
-        :param args: the osc message args
-        :type args: list
-
-        :param packet: the binary representation of a osc message
-        :type packet: str
-
-        :param client_address: (host, port) of the requesting client
-        :type client_address: tuple
-        """
-
-        print "%s: incoming %r, %r, %r" % (
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            osc_address, typetags, args)
+    def unsubscribe(self):
+        self.unsubscribe_me(self.chaosc_address, (self.args.own_host, self.args.own_port),
+            self.args.token)
 
 
 
 def main():
     parser = argparse.ArgumentParser(prog='chaosc_filter')
-    parser.add_argument("-H", '--chaosc_host', required=True,
-        type=str, help='host of chaosc instance to control')
-    parser.add_argument("-p", '--chaosc_port', required=True,
-        type=int, help='port of chaosc instance to control')
-    parser.add_argument('-o', "--own_host", required=True,
-        type=str, help='my host')
-    parser.add_argument('-r', "--own_port", required=True,
-        type=int, help='my port')
-    parser.add_argument('-c', "--config_dir", default="~/.config/chaosc",
-        help="config directory. default = '~/.config/chaosc'")
-    parser.add_argument('-T', "--transcoding_config", default="~/.config/chaosc/transcoding.py",
-        help="config directory. default = '~/.config/chaosc'")
-    parser.add_argument("-f", '--forward_host', metavar="HOST",
-        type=str, help='host of client where the message will be sento to')
-    parser.add_argument("-F", '--forward_port', metavar="PORT",
-        type=int, help='port of client where the message will be sento to')
-    parser.add_argument('-t', '--token', type=str, default="sekret",
-        help='token to authorize ctl commands, default="sekret"')
-    parser.add_argument('-s', '--subscriber_name', type=str, default=os.path.basename(sys.argv[0]),
-        help="which label to use as subscriber to chaosc, default=\"this programs's\" name")
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-d', '--dump', action="store_true",
-        help='if True, this client dumps all received msgs to stdout')
-    group.add_argument('-D', '--dump_only', action="store_true",
-        help='if True, this client only dumps but does not filter and forward')
+    main_args_group = parser.add_argument_group('main flags', 'flags for chaosc_filter')
+    chaosc_args_group = parser.add_argument_group('chaosc', 'flags relevant for interacting with chaosc')
 
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
+    main_args_group.add_argument('-o', "--own_host", required=True,
+        type=str, help='my host')
+    main_args_group.add_argument('-r', "--own_port", required=True,
+        type=int, help='my port')
+    main_args_group.add_argument('-c', "--config_dir", default="~/.config/chaosc",
+        help="config directory where the filter config files are located. default = '~/.config/chaosc'")
+    main_args_group.add_argument("-f", '--forward_host', metavar="HOST",
+        type=str, help='host or url where the messages will be sent to')
+    main_args_group.add_argument("-F", '--forward_port', metavar="PORT",
+        type=int, help='port where the messages will be sent to')
+
+    chaosc_args_group.add_argument('-s', '--subscribe', action="store_true",
+        help='if True, this transcoder subscribes itself to chaosc. If you use this, you need to provide more flags in this group')
+    chaosc_args_group.add_argument('-S', '--subscriber_label', type=str, default="chaosc_transcoder",
+        help='the string to use for subscription label, default="chaosc_transcoder"')
+    chaosc_args_group.add_argument('-t', '--token', type=str, default="sekret",
+        help='token to authorize subscription command, default="sekret"')
+    chaosc_args_group.add_argument("-H", '--chaosc_host',
+        type=str, help='host of chaosc instance')
+    chaosc_args_group.add_argument("-p", '--chaosc_port',
+        type=int, help='port of chaosc instance')
 
     args = parser.parse_args(sys.argv[1:])
 
-    if (not args.dump_only and (
-        not hasattr(args, "forward_host") or
-        not hasattr(args, "forward_port"))):
-        print "Error: please provide forward host and port"
-        sys.exit(-1)
-
     server = FilterOSCServer(args)
+    atexit.register(server.unsubscribe)
     server.serve_forever()

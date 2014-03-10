@@ -33,6 +33,7 @@ transcoding.py file.
 from __future__ import absolute_import
 
 
+import atexit
 import sys, argparse
 
 from datetime import datetime
@@ -92,6 +93,12 @@ class ChaoscDump(SimpleOSCServer):
             osc_address, typetags, args)
 
 
+    def unsubscribe(self):
+        self.unsubscribe_me(self.chaosc_address, (self.args.own_host, self.args.own_port),
+            self.args.token)
+
+
+
 def main():
     parser = argparse.ArgumentParser(prog='chaosc_filter')
     main_args_group = parser.add_argument_group('main flags', 'flags for chaosc_transcoder')
@@ -114,4 +121,7 @@ def main():
         type=int, help='port of chaosc instance')
 
     server = ChaoscDump(parser.parse_args(sys.argv[1:]))
+
+
+    atexit.register(server.unsubscribe)
     server.serve_forever()
