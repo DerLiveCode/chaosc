@@ -19,13 +19,10 @@
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-from __future__ import absolute_import
-
 import socket
 import sys
 import os, os.path
 import argparse
-import chaosc._version
 
 from datetime import datetime
 from time import time
@@ -34,11 +31,13 @@ from collections import defaultdict
 from SocketServer import UDPServer, DatagramRequestHandler
 from types import FunctionType, MethodType
 
+import _version
+
 try:
-    from chaosc.c_osc_lib import (OSCBundle, OSCMessage,
+    from c_osc_lib import (OSCBundle, OSCMessage,
         proxy_decode_osc, OSCError, OSCBundleFound)
 except ImportError:
-    from chaosc.osc_lib import (OSCBundle, OSCMessage, proxy_decode_osc,
+    from osc_lib import (OSCBundle, OSCMessage, proxy_decode_osc,
         OSCError, OSCBundleFound)
 
 
@@ -80,7 +79,7 @@ class Chaosc(UDPServer):
 
         now = datetime.now().strftime("%x %X")
         print "%s: starting up chaosc-%s..." % (
-            now, chaosc._version.__version__)
+            now, _version.__version__)
         UDPServer.__init__(self, server_address, DatagramRequestHandler)
         print "%s: binding to %s:%r" % (
             now, self.socket.getsockname()[0], server_address[1])
@@ -112,7 +111,7 @@ class Chaosc(UDPServer):
     def server_bind(self):
         # Override this method to be sure v6only is false: we want to
         # listen to both IPv4 and IPv6!
-        print "v6 only", self.socket.getsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY)
+        #print "v6 only", self.socket.getsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY)
         self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
         UDPServer.server_bind(self)
 
@@ -212,7 +211,7 @@ class Chaosc(UDPServer):
         """
 
         out = self.__class__.__name__
-        out += " v%s.%s-%s" % chaosc._version.__version__
+        out += " v%s.%s-%s" % _version.__version__
         addr = self.address()
         if addr:
             out += " listening on %r" % addr
@@ -311,16 +310,16 @@ class Chaosc(UDPServer):
         address = args[:2]
         try:
             r = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)
-            print "addrinfo", r
+            #print "addrinfo", r
             if len(r) == 2:
-                address = r[1][4]
+                address = r[-1][4]
             try:
                 print "%s: subscribe %r (%s:%d) by %s:%d" % (
                     datetime.now().strftime("%x %X"), args[3], address[0],
                     address[1], client_address[0], client_address[1])
-                self.targets[tuple(address)] =  args[3]
+                self.targets[tuple(address)] = args[3]
             except IndexError:
-                self.targets[tuple(address)] =  ""
+                self.targets[tuple(address)] = ""
                 print "%s: subscribe (%s:%d) by %s:%d" % (
                     datetime.now().strftime("%x %X"), address[0], address[1],
                     client_address[0], client_address[1])
@@ -345,8 +344,12 @@ class Chaosc(UDPServer):
             print "subscription attempt from %r: token wrong" % client_address
             return
 
+        address = args[:2]
         try:
-            address = tuple(args[:2])
+            if len(r) == 2:
+                address = r[-1][4]
+            r = socket.getaddrinfo(address[0], address[1], socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL)
+
             del self.targets[address[0]]
             print "unsubscription: %r, %r from %r" % (
                 datetime.now().strftime("%x %X"), repr(address),
@@ -359,7 +362,7 @@ class Chaosc(UDPServer):
         """Handle incoming requests
         """
         packet = request[0]
-        print "packet", repr(packet), client_address
+        #print "packet", repr(packet), client_address
         len_packet = len(packet)
         try:
             # using special decoding procedure for speed

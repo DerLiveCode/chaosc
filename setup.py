@@ -44,6 +44,8 @@ setup(
     chaosc_ctl = chaosc.chaosc_ctl:main
     chaosc_ts = chaosc.chaosc_ts:main
     chaosc_tt = chaosc.chaosc_tt:main
+    chaosc_transcoder = chaosc.chaosc_transcoder:main
+    chaosc_dump = chaosc.chaosc_dump:main
     chaosc_filter = chaosc.chaosc_filter:main
     chaosc_serial_input = chaosc.chaosc_serial_input:main
     chaosc_serial = chaosc.chaosc_serial:main

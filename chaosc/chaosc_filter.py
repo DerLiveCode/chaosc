@@ -55,7 +55,7 @@ class FilterOSCServer(SimpleOSCServer):
     """OSC filtering/transcoding middleware
     """
 
-    def __init__(self, result):
+    def __init__(self, args):
         """ctor for filter server
 
         starts the server, loads scene filters and transcoders and chooses
@@ -68,20 +68,19 @@ class FilterOSCServer(SimpleOSCServer):
 
         d = datetime.now().strftime("%x %X")
         print "%s: starting up chaosc_filter-%s..." % (d, chaosc._version.__version__)
-        print "%s: binding to %s:%r" % (d, result.own_host, result.own_port)
-        SimpleOSCServer.__init__(self, (result.own_host, result.own_port))
-        self.filter_address = (result.own_host, result.own_port)
-        self.chaosc_address = (result.chaosc_host, result.chaosc_port)
-        self.forward_address = (result.forward_host, result.forward_port)
-        self.token = result.token
-        self.config_dir = result.config_dir
-        self.dump_only = result.dump_only
+        print "%s: binding to %s:%r" % (d, args.own_host, args.own_port)
+        SimpleOSCServer.__init__(self, (args.own_host, args.own_port))
+        self.args = args
+        self.filter_address = (args.own_host, args.own_port)
+        self.chaosc_address = (args.chaosc_host, args.chaosc_port)
+        self.forward_address = (args.forward_host, args.forward_port)
+        self.token = args.token
+        self.config_dir = args.config_dir
+        self.dump_only = args.dump_only
 
-        a,b,c = imp.find_module("transcoding_config", [result.config_dir,])
+        a,b,c = imp.find_module(args.transcoding_config, [args.config_dir,])
         self.transcoders = imp.load_module(
-            "transcoding_config", a, b, c).transcoders
-
-        self.triggers = dict()
+            self.args.transcoding_config, a, b, c).transcoders
 
         self.scene = (list(), list())
         self.scenes = [self.scene,]
@@ -89,12 +88,12 @@ class FilterOSCServer(SimpleOSCServer):
 
         self.load_filters()
         self.subscribe_me(self.chaosc_address, self.filter_address,
-            result.token, result.subscriber_name)
+            args.token, args.subscriber_name)
 
-        if result.dump_only:
+        if args.dump_only:
             self.handler = self.dump_only_handler
             print "%s: configured verbose=on, filtering and forwarding=off" % d
-        elif result.dump:
+        elif args.dump:
             self.handler = self.dump_handler
             print "%s: configured verbose=on, filtering and forwarding=on" % d
         else:
@@ -111,6 +110,8 @@ class FilterOSCServer(SimpleOSCServer):
             if (r is not None and
                 os.path.isfile(os.path.join(self.config_dir, i))):
                 scene_filters.append((r.group(1), i))
+        if not scene_filters:
+            return
 
         scene_filters.sort(key=itemgetter(0))
         if scene_filters[0][0] > len(scene_filters):
@@ -286,6 +287,8 @@ def main():
         type=int, help='my port')
     parser.add_argument('-c', "--config_dir", default="~/.config/chaosc",
         help="config directory. default = '~/.config/chaosc'")
+    parser.add_argument('-T', "--transcoding_config", default="~/.config/chaosc/transcoding.py",
+        help="config directory. default = '~/.config/chaosc'")
     parser.add_argument("-f", '--forward_host', metavar="HOST",
         type=str, help='host of client where the message will be sento to')
     parser.add_argument("-F", '--forward_port', metavar="PORT",
@@ -304,13 +307,13 @@ def main():
         parser.print_help()
         sys.exit(0)
 
-    result = parser.parse_args(sys.argv[1:])
+    args = parser.parse_args(sys.argv[1:])
 
-    if (not result.dump_only and (
-        not hasattr(result, "forward_host") or
-        not hasattr(result, "forward_port"))):
+    if (not args.dump_only and (
+        not hasattr(args, "forward_host") or
+        not hasattr(args, "forward_port"))):
         print "Error: please provide forward host and port"
         sys.exit(-1)
 
-    server = FilterOSCServer(result)
+    server = FilterOSCServer(args)
     server.serve_forever()

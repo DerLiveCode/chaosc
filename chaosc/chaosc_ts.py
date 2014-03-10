@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
 
@@ -47,7 +47,10 @@ def loop(ix):
     count = 1
     test = False
     while 1:
-        m1 = OSCMessage("/source3/out%d" % count)
+        m1 = OSCMessage("/uwe/heartbeat")
+        m1.appendTypedArg(random.sample((1,245), 1)[0], "i")
+        m1.appendTypedArg(random.randint(0,180), "i")
+        m1.appendTypedArg(random.randint(0, 100), "i")
         binary = m1.encode_osc()
 
         try:
