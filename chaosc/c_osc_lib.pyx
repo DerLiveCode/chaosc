@@ -618,7 +618,7 @@ cdef class OSCBundle(object):
     cdef public float timetag
     cdef public list args
 
-    def __init__(self, timetag=0.):
+    def __init__(self, timetag=0.0):
         """Instantiate a new OSCBundle.
         The default OSC-address for newly created OSCMessages
         can be specified with the 'address' argument

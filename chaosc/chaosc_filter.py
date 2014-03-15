@@ -33,13 +33,14 @@ transcoding.py file.
 from __future__ import absolute_import
 
 
-import sys, os, os.path, argparse, re, atexit
+import sys, os, os.path, re, atexit
 
 from operator import itemgetter
 from datetime import datetime
 from chaosc.simpleOSCServer import SimpleOSCServer
 
 import chaosc._version
+from chaosc.argparser_groups import *
 
 
 class FilterOSCServer(SimpleOSCServer):
@@ -49,32 +50,25 @@ class FilterOSCServer(SimpleOSCServer):
     def __init__(self, args):
         """ctor for filter server
 
-        starts the server, loads scene filters and transcoders and chooses
-        the request handler, which is one of
-        forward only, forward and dump, dump only.
+        loads scene filters
 
-        :param result: return value of argparse.parse_args
-        :type result: namespace object
+        :param args: return value of argparse.parse_args
+        :type args: namespace object
         """
+        print "%s: starting up chaosc_filter-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
 
-        now = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc_filter-%s..." % (now, chaosc._version.__version__)
-        print "%s: binding to %s:%r" % (now, args.own_host, args.own_port)
-        SimpleOSCServer.__init__(self, (args.own_host, args.own_port))
-        self.args = args
-        self.own_address = (args.own_host, args.own_port)
-        self.chaosc_address = (args.chaosc_host, args.chaosc_port)
-        self.forward_address = (args.forward_host, args.forward_port)
-        self.token = args.token
-        self.config_dir = args.config_dir
+        SimpleOSCServer.__init__(self, args)
+
+        self.forward_address = socket.getaddrinfo(args.forward_host, args.forward_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+
+        self.config_dir = args.filtering_config_dir
 
         self.scene = (list(), list())
         self.scenes = [self.scene,]
         self.scene_id = 0
 
         self.load_filters()
-        self.subscribe_me(self.chaosc_address, self.own_address,
-            args.token, args.subscriber_label)
+
 
 
     def load_filters(self):
@@ -171,41 +165,17 @@ class FilterOSCServer(SimpleOSCServer):
 
         self.socket.sendto(packet, self.forward_address)
 
-    def unsubscribe(self):
-        self.unsubscribe_me(self.chaosc_address, (self.args.own_host, self.args.own_port),
-            self.args.token)
-
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='chaosc_filter')
-    main_args_group = parser.add_argument_group('main flags', 'flags for chaosc_filter')
-    chaosc_args_group = parser.add_argument_group('chaosc', 'flags relevant for interacting with chaosc')
-
-    main_args_group.add_argument('-o', "--own_host", required=True,
-        type=str, help='my host')
-    main_args_group.add_argument('-r', "--own_port", required=True,
-        type=int, help='my port')
-    main_args_group.add_argument('-c', "--config_dir", default="~/.config/chaosc",
-        help="config directory where the filter config files are located. default = '~/.config/chaosc'")
-    main_args_group.add_argument("-f", '--forward_host', metavar="HOST",
-        type=str, help='host or url where the messages will be sent to')
-    main_args_group.add_argument("-F", '--forward_port', metavar="PORT",
-        type=int, help='port where the messages will be sent to')
-
-    chaosc_args_group.add_argument('-s', '--subscribe', action="store_true",
-        help='if True, this transcoder subscribes itself to chaosc. If you use this, you need to provide more flags in this group')
-    chaosc_args_group.add_argument('-S', '--subscriber_label', type=str, default="chaosc_transcoder",
-        help='the string to use for subscription label, default="chaosc_transcoder"')
-    chaosc_args_group.add_argument('-t', '--token', type=str, default="sekret",
-        help='token to authorize subscription command, default="sekret"')
-    chaosc_args_group.add_argument("-H", '--chaosc_host',
-        type=str, help='host of chaosc instance')
-    chaosc_args_group.add_argument("-p", '--chaosc_port',
-        type=int, help='port of chaosc instance')
-
-    args = parser.parse_args(sys.argv[1:])
+    arg_parser = create_arg_parser("chaosc_filter")
+    add_main_group(arg_parser)
+    add_chaosc_group(arg_parser)
+    add_subscriber_group(arg_parser, "chaosc_filter")
+    add_forward_group(arg_parser)
+    add_filtering_group(arg_parser)
+    args = finalize_arg_parser(arg_parser)
 
     server = FilterOSCServer(args)
-    atexit.register(server.unsubscribe)
+    atexit.register(server.unsubscribe_me)
     server.serve_forever()

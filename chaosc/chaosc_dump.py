@@ -34,38 +34,25 @@ from __future__ import absolute_import
 
 
 import atexit
-import sys, argparse
+import sys
+import socket
+
 
 from datetime import datetime
 from chaosc.simpleOSCServer import SimpleOSCServer
 import chaosc._version
 
+from chaosc.argparser_groups import *
 
 class ChaoscDump(SimpleOSCServer):
     """OSC filtering/transcoding middleware
     """
 
     def __init__(self, args):
-        """ctor for filter server
+        """ctor for osc message dumper from chaosc"""
 
-        starts the server, loads scene filters and transcoders and chooses
-        the request handler, which is one of
-        forward only, forward and dump, dump only.
-
-        :param result: return value of argparse.parse_args
-        :type result: namespace object
-        """
-
-        d = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc_dump-%s..." % (d, chaosc._version.__version__)
-        SimpleOSCServer.__init__(self, (args.own_host, args.own_port))
-        self.args = args
-        self.chaosc_address = (args.chaosc_host, args.chaosc_port)
-
-        if args.subscribe:
-            self.subscribe_me(self.chaosc_address, (args.own_host, args.own_port),
-                args.token, args.subscriber_label)
-
+        print "%s: starting up chaosc_dump-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
+        SimpleOSCServer.__init__(self, args)
 
 
     def dispatchMessage(self, osc_address, typetags, args, packet,
@@ -93,35 +80,15 @@ class ChaoscDump(SimpleOSCServer):
             osc_address, typetags, args)
 
 
-    def unsubscribe(self):
-        self.unsubscribe_me(self.chaosc_address, (self.args.own_host, self.args.own_port),
-            self.args.token)
-
-
 
 def main():
-    parser = argparse.ArgumentParser(prog='chaosc_filter')
-    main_args_group = parser.add_argument_group('main flags', 'flags for chaosc_transcoder')
-    chaosc_args_group = parser.add_argument_group('chaosc', 'flags relevant for interacting with chaosc')
+    a = create_arg_parser("chaosc_dump")
+    add_main_group(a)
+    add_chaosc_group(a)
+    add_subscriber_group(a, "chaosc_dump")
+    args = finalize_arg_parser(a)
 
-    main_args_group.add_argument('-o', "--own_host", required=True,
-        type=str, help='my host')
-    main_args_group.add_argument('-p', "--own_port", required=True,
-        type=int, help='my port')
+    server = ChaoscDump(args)
+    atexit.register(server.unsubscribe_me)
 
-    chaosc_args_group.add_argument('-s', '--subscribe', action="store_true",
-        help='if True, this transcoder subscribes itself to chaosc. If you use this, you need to provide more flags in this group')
-    chaosc_args_group.add_argument('-S', '--subscriber_label', type=str, default="chaosc_transcoder",
-        help='the string to use for subscription label, default="chaosc_transcoder"')
-    chaosc_args_group.add_argument('-t', '--token', type=str, default="sekret",
-        help='token to authorize subscription command, default="sekret"')
-    chaosc_args_group.add_argument("-H", '--chaosc_host',
-        type=str, help='host of chaosc instance')
-    chaosc_args_group.add_argument("-P", '--chaosc_port',
-        type=int, help='port of chaosc instance')
-
-    server = ChaoscDump(parser.parse_args(sys.argv[1:]))
-
-
-    atexit.register(server.unsubscribe)
     server.serve_forever()

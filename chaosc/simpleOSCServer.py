@@ -20,6 +20,7 @@
 
 import socket
 import sys
+import atexit
 
 from datetime import datetime
 from struct import pack
@@ -72,29 +73,27 @@ class SimpleOSCServer(UDPServer):
     #address_family = socket.AF_INET
 
 
-    def __init__(self, server_address):
+    def __init__(self, args):
         """Instantiate an OSCServer.
         server_address ((host, port) tuple): the local host & UDP-port
         the server listens on
         """
-        UDPServer.__init__(self, server_address, OSCRequestHandler)
-        now = datetime.now().strftime("%x %X")
-        print "%s: binding to %s:%r" % (
-            now, self.socket.getsockname()[0], server_address[1])
 
-        self.callbacks = {}
+        self.args = args
+        self.own_address = own_host, own_port = socket.getaddrinfo(args.own_host, args.own_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+        self.chaosc_address = chaosc_host, chaosc_port = socket.getaddrinfo(args.chaosc_host, args.chaosc_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+
+        print "%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), own_host, own_port)
+        UDPServer.__init__(self, self.own_address, OSCRequestHandler)
 
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
         self.socket.setblocking(0)
+        self.subscribe_me()
 
-    #def server_bind(self):
-        ## Override this method to be sure v6only is false: we want to
-        ## listen to both IPv4 and IPv6!
-        #self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
-        #UDPServer.server_bind(self)
+        self.callbacks = {}
 
 
-    def subscribe_me(self, chaosc_address, receiver_address, token, name=None):
+    def subscribe_me(self):
         """Use this procedure for a quick'n dirty subscription to your chaosc instance.
 
         :param chaosc_address: (chaosc_host, chaosc_port)
@@ -106,24 +105,24 @@ class SimpleOSCServer(UDPServer):
         :param token: token to get authorized for subscription
         :type token: str
         """
-        d = datetime.now().strftime("%x %X")
-        print "%s: subscribing to %s:%d..." % (d, chaosc_address[0], chaosc_address[1])
+        print "%s: subscribing to '%s:%d' with label %r" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1], self.args.subscriber_label)
         msg = OSCMessage("/subscribe")
-        msg.appendTypedArg(receiver_address[0], "s")
-        msg.appendTypedArg(receiver_address[1], "i")
-        msg.appendTypedArg(token, "s")
-        if name is not None:
-            msg.appendTypedArg(name, "s")
-        self.sendto(msg, chaosc_address)
+        msg.appendTypedArg(self.own_address[0], "s")
+        msg.appendTypedArg(self.own_address[1], "i")
+        msg.appendTypedArg(self.args.authenticate, "s")
+        if self.args.subscriber_label is not None:
+            msg.appendTypedArg(self.args.subscriber_label, "s")
+        self.sendto(msg, self.chaosc_address)
 
-    def unsubscribe_me(self, chaosc_address, receiver_address, token):
-        d = datetime.now().strftime("%x %X")
-        print "%s: unsubscribing from '%s:%d'..." % (d, chaosc_address[0], chaosc_address[1])
-        msg = OSCMessage("/unsubscribe")
-        msg.appendTypedArg(receiver_address[0], "s")
-        msg.appendTypedArg(receiver_address[1], "i")
-        msg.appendTypedArg(token, "s")
-        self.sendto(msg, chaosc_address)
+
+    def unsubscribe_me(self):
+        if self.args.subscribe:
+            print "%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1])
+            msg = OSCMessage("/unsubscribe")
+            msg.appendTypedArg(self.own_address[0], "s")
+            msg.appendTypedArg(self.own_address[1], "i")
+            msg.appendTypedArg(self.args.authenticate, "s")
+            self.sendto(msg, self.chaosc_address)
 
 
     def addMsgHandler(self, address, callback):

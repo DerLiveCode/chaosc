@@ -27,21 +27,22 @@ skills to master them.
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-import sys, os, os.path, argparse, re, time, imp, atexit
+from __future__ import absolute_import
 
-from operator import itemgetter
+import sys, os, os.path, re, time, imp, atexit
+
 from datetime import datetime
-from simpleOSCServer import SimpleOSCServer
-import _version
+
+from chaosc.argparser_groups import *
+from chaosc.simpleOSCServer import SimpleOSCServer
+
+import chaosc._version
+
 
 try:
-    from c_osc_lib import OSCMessage
+    from chaosc.c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage
-
-
-def handle_incoming(address, typetags, args, client_address):
-    print "client", address, typetags, args, client_address
+    from chaosc.osc_lib  import OSCMessage
 
 
 class ChaoscTranscoder(SimpleOSCServer):
@@ -49,29 +50,24 @@ class ChaoscTranscoder(SimpleOSCServer):
     """
 
     def __init__(self, args):
-        """ctor for filter server
+        """ctor for osc transcoder
 
-        starts the server, subscribe to chaosc if wished and loads transcoders.
+        loads transcoders.
 
-        :param result: return value of argparse.parse_args
-        :type result: namespace object
+        :param args: return value of argparse.parse_args
+        :type args: namespace object
         """
 
-        d = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc_transcoder-%s..." % (d, _version.__version__)
-        SimpleOSCServer.__init__(self, (args.own_host, args.own_port))
-        self.args = args
 
-        self.chaosc_address = (args.chaosc_host, args.chaosc_port)
-        self.forward_address = (args.forward_host, args.forward_port)
+        print "%s: starting up chaosc_transcoder-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
+        SimpleOSCServer.__init__(self, args)
 
-        a,b,c = imp.find_module(args.config_file, [args.config_dir,])
+        self.forward_address = socket.getaddrinfo(args.forward_host, args.forward_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+
+        basename = os.path.splitext(args.transcoding_file)[0]
+        a,b,c = imp.find_module(basename, [args.transcoding_dir,])
         self.transcoders = imp.load_module(
-            args.config_file, a, b, c).transcoders
-
-        if args.subscribe:
-            self.subscribe_me(self.chaosc_address, (args.own_host, args.own_port),
-                args.token, args.subscriber_label)
+            basename, a, b, c).transcoders
 
 
     def add_transcoder(self, handler):
@@ -111,47 +107,23 @@ class ChaoscTranscoder(SimpleOSCServer):
 
         self.socket.sendto(packet, self.forward_address)
 
-    def unsubscribe(self):
-        self.unsubscribe_me(self.chaosc_address, (self.args.own_host, self.args.own_port),
-            self.args.token)
-
 
 def main():
-    parser = argparse.ArgumentParser(prog='chaosc_transcoder')
-    main_args_group = parser.add_argument_group('main flags', 'flags for chaosc_transcoder')
-    chaosc_args_group = parser.add_argument_group('chaosc', 'flags relevant for interacting with chaosc')
+    a = create_arg_parser("chaosc_transcoder")
+    add_main_group(a)
+    add_chaosc_group(a)
+    add_subscriber_group(a, "chaosc_transcoder")
+    add_forward_group(a)
+    add_transcoding_group(a)
 
-    main_args_group.add_argument('-o', "--own_host", required=True,
-        type=str, help='my host')
-    main_args_group.add_argument('-r', "--own_port", required=True,
-        type=int, help='my port')
-    main_args_group.add_argument('-c', "--config_dir", default="~/.config/chaosc",
-        help="config directory where the transcoding config file is located. default = '~/.config/chaosc'")
-    main_args_group.add_argument('-C', "--config_file", default="transcoding_config.py",
-        help="the configuration file for transcoders. default = 'transcoding_config.py'")
-    main_args_group.add_argument("-f", '--forward_host', metavar="HOST",
-        type=str, help='host or url where the messages will be sent to')
-    main_args_group.add_argument("-F", '--forward_port', metavar="PORT",
-        type=int, help='port where the messages will be sent to')
+    args = finalize_arg_parser(a)
 
-    chaosc_args_group.add_argument('-s', '--subscribe', action="store_true",
-        help='if True, this transcoder subscribes itself to chaosc. If you use this, you need to provide more flags in this group')
-    chaosc_args_group.add_argument('-S', '--subscriber_label', type=str, default="chaosc_transcoder",
-        help='the string to use for subscription label, default="chaosc_transcoder"')
-    chaosc_args_group.add_argument('-t', '--token', type=str, default="sekret",
-        help='token to authorize subscription command, default="sekret"')
-    chaosc_args_group.add_argument("-H", '--chaosc_host',
-        type=str, help='host of chaosc instance')
-    chaosc_args_group.add_argument("-p", '--chaosc_port',
-        type=int, help='port of chaosc instance')
-
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
-
-    args = parser.parse_args(sys.argv[1:])
+    if not os.path.isdir(args.transcoding_dir):
+        raise ValueError("Error: %r is not a directory" % args.transcoding_dir)
+    if not os.path.isfile(os.path.join(args.transcoding_dir, args.transcoding_file)):
+        raise ValueError("Error: %r is not a file" % os.path.join(args.transcoding_dir, args.transcoding_file))
 
     server = ChaoscTranscoder(args)
-    atexit.register(server.unsubscribe)
+    atexit.register(server.unsubscribe_me)
     server.serve_forever()
 
