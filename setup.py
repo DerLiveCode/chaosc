@@ -42,7 +42,7 @@ setup(
     [console_scripts]
     chaosc = chaosc.chaosc:main
     chaosc_ctl = chaosc.chaosc_ctl:main
-    chaosc_ts = chaosc.chaosc_ts:main
+    chaosc_emitter = chaosc.chaosc_emitter:main
     chaosc_tt = chaosc.chaosc_tt:main
     chaosc_transcoder = chaosc.chaosc_transcoder:main
     chaosc_dump = chaosc.chaosc_dump:main

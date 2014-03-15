@@ -1,1 +1,1 @@
-__version__ = "1.0-2-g3495458-dirty"
+__version__ = "1.2-0-g4cf233f-dirty"

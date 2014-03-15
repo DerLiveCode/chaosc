@@ -62,8 +62,8 @@ def add_subscriber_group(arg_parser, subscriber_name):
         help='the string to use for subscription label, default="chaosc_transcoder"')
     subscriber_group.add_argument('-a', '--authenticate', type=str, default="sekret",
         help='token to authorize interaction with chaosc, default="sekret"')
-    subscriber_group.add_argument('-u', '--unsubscribe', action="store_false",
-        help='unsubscribes on error or exit, default=True')
+    subscriber_group.add_argument('-k', '--keep-subscribed', action="store_true",
+        help='if specified, this tool don\'t unsubscribes on error or exit, default=False')
     return subscriber_group
 
 

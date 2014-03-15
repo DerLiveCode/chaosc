@@ -23,14 +23,14 @@ from __future__ import absolute_import
 import random, socket, time, argparse, sys, math
 from copy import copy
 try:
-    from c_osc_lib import *
+    from chaosc.c_osc_lib import *
 except ImportError, e:
     print e
-    from osc_lib import *
+    from chaosc.osc_lib import *
 
 from multiprocessing import Pool
 
-from argparser_groups import *
+from chaosc.argparser_groups import *
 
 
 class Runner(object):

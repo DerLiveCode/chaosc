@@ -63,9 +63,6 @@ def main():
     parser_unsubscribe.add_argument('port', metavar="port", type=int,
         help='port number')
 
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
     result = parser.parse_args(sys.argv[1:])
 
     client = SimpleOSCServer(("", 7777))

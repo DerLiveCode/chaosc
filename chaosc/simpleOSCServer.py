@@ -116,13 +116,15 @@ class SimpleOSCServer(UDPServer):
 
 
     def unsubscribe_me(self):
-        if self.args.subscribe:
-            print "%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1])
-            msg = OSCMessage("/unsubscribe")
-            msg.appendTypedArg(self.own_address[0], "s")
-            msg.appendTypedArg(self.own_address[1], "i")
-            msg.appendTypedArg(self.args.authenticate, "s")
-            self.sendto(msg, self.chaosc_address)
+        if self.args.keep_subscribed:
+            return
+
+        print "%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1])
+        msg = OSCMessage("/unsubscribe")
+        msg.appendTypedArg(self.own_address[0], "s")
+        msg.appendTypedArg(self.own_address[1], "i")
+        msg.appendTypedArg(self.args.authenticate, "s")
+        self.sendto(msg, self.chaosc_address)
 
 
     def addMsgHandler(self, address, callback):
