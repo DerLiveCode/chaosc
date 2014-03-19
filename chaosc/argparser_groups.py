@@ -27,7 +27,6 @@ import argparse
 import sys
 import socket
 
-import chaosc._version
 from chaosc.simpleOSCServer import SimpleOSCServer
 
 

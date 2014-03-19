@@ -14,41 +14,23 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
+
+from __future__ import absolute_import
+
 
 import sys, os, os.path, argparse, re, cPickle, time, asyncore, socket, thread
 
 from threading import Thread, Lock
-from simpleOSCServer import SimpleOSCServer
+from chaosc.simpleOSCServer import SimpleOSCServer
 import termios, tty
 
 import asyncore, socket
 
-#class AsyncoreServerUDP(asyncore.dispatcher):
-    #def __init__(self):
-        #asyncore.dispatcher.__init__(self)
+from chaosc.argparser_groups import *
 
-        ## Bind to port 5005 on all interfaces
-        #self.create_socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #self.bind(('', 5005))
-
-    ## Even though UDP is connectionless this is called when it binds to a port
-    #def handle_connect(self):
-        #print "Server Started..."
-
-    ## This is called everytime there is something to read
-    #def handle_read(self):
-        #data, addr = self.recvfrom(2048)
-        #print str(addr)+" >> "+data
-
-    ## This is called all the time and causes errors if you leave it out.
-    #def handle_write(self):
-        #pass
-
-#AsyncoreServerUDP()
-#asyncore.loop()
-
+import chaosc._version
 
 class ReplayThread(Thread):
     def __init__(self, recorder):
@@ -70,7 +52,7 @@ class ReplayThread(Thread):
             try:
                 timestamp, packet = self.recorder.data[current_packet]
                 if time.time() - playstart <= 0.0:
-                    self.recorder.socket.sendto(packet, self.recorder.forward_address)
+                    self.recorder.socket.sendto(packet, self.recorder.chaosc_address)
                 current_packet +=1
             except IndexError, e:
                 print "Replay ended"
@@ -115,7 +97,7 @@ class ControlThread(Thread):
             elif char == "r":
                 self.recorder.record()
             elif char == "b":
-                self.recorder.bypass()
+                self.recorder.stop()
             elif char == "s":
                 try:
                     self.recorder.save()
@@ -128,62 +110,39 @@ class ControlThread(Thread):
 
 class OSCRecorder(SimpleOSCServer):
 
-    def __init__(self, filter_address, hub_address, forward_address, token, path):
-        SimpleOSCServer.__init__(self, ("0.0.0.0", filter_address[1]))
-        self.filter_address = filter_address
-        self.hub_address = hub_address
-        self.forward_address = forward_address
-        self.token = token
-        self.path = path
-        self.data = list()
-        self.mode = 0 # 0=bypass, 1=record, 2 = play
+    def __init__(self, args):
+        SimpleOSCServer.__init__(self, args)
+        self.args = args
+        self.chaosc_address = (args.chaosc_host, args.chaosc_port)
+        self.token = args.authenticate
+        self.path = args.record_file
+        self.mode = 0 # 0=ignore, 1=record, 2 = play
         self.lock = Lock()
         self.thread = None
         self.control = ControlThread(self)
         self.control.start()
-        self.loopback = hub_address == forward_address
+        self.log_file = None
         self.help()
-        if self.loopback:
-            print "Detected loopback mode. Deactivating osc message forwarding in modes 'bypass' and 'record'."
-        self.subscribe_me(hub_address, filter_address, token)
-        self.load()
-        self.bypass()
+        self.stop()
+
 
     def modeName(self):
         if self.mode == 0:
-            return "bypassed"
+            return "stopped"
         elif self.mode == 1:
             return "recording"
         elif self.mode == 2:
-            return "replaying"
+            return "playing"
 
-    def save(self):
-        if self.mode == 1:
-            raise Exception("stop recording before saving")
-
-        self.lock.acquire()
-        cPickle.dump((self.recstart, self.rec_end, self.data), open(self.path, "w"), 2)
-        self.lock.release()
-
-    def load(self):
-        self.lock.acquire()
-        try:
-            self.recstart, self.rec_end, self.data = cPickle.load(open(self.path, "r"))
-            print "Loaded osc session from %r with length %rs" % (time.ctime(self.recstart), int(self.rec_end - self.recstart))
-        except Exception,e:
-            print "No osc session loaded yet"
-            pass
-        self.lock.release()
 
     def help(self):
         print "This is chaosc_recorder."
         print
         print "press h to get this help"
         print "press q to quit"
-        print "press p for replay"
-        print "press b for bypassing"
-        print "press r for recording"
-        print "press s (in bypass mode) to save your recording to file"
+        print "press p to play"
+        print "press b for stop"
+        print "press r to start record"
         print
         print "Current mode: %s..." % self.modeName()
 
@@ -202,23 +161,28 @@ class OSCRecorder(SimpleOSCServer):
             self.thread.playing = False
             self.thread.join()
             self.thread = None
+        self.log_file = open(self.path, "wb")
         self.mode = 1
-        self.recstart = time.time()
-        self.data = list()
+        self.rec_start = time.time()
+        self.log_file.write("start: %f\n" % self.rec_start)
         self.lock.release()
 
-    def bypass(self):
+    def stop(self):
         self.lock.acquire()
         if self.mode == 1:
             self.rec_end = time.time()
+            self.log_file.write("end: %f\n" % self.rec_end)
+            self.log_file.close()
+
         if self.mode == 2:
             self.thread.playing = False
             self.thread.join()
             self.thread = None
 
         self.mode = 0
-        print "Bypassed..."
+        print "stopped..."
         self.lock.release()
+
 
     def quit(self):
         try:
@@ -235,58 +199,32 @@ class OSCRecorder(SimpleOSCServer):
         """
 
         packet = request[0]
-        #char = packet[1]
-        #if char == "p":
-            #self.play()
-        #elif char == "r":
-            #self.record()
-        #elif char == "b":
-            #self.bypass()
-        #elif char == "s":
-            #try:
-                #self.save()
-            #except Exception, e:
-                #print e
-        #elif char == "q":
-            #termios.tcsetattr(self.control.fd, termios.TCSADRAIN, self.control.remember_attributes)
-            #sys.stdout.write("\033[1G")
-            #os._exit(0)
 
         self.lock.acquire()
         if self.mode == 1:
-            data.append((time.time() - self.recstart, packet))
-        elif self.mode <= 1 and not self.loopback:
-            self.socket.sendto(packet, self.forward_address)
+            self.log_file.write("%f: %s\n" % (time.time() - self.rec_start, packet))
+        elif self.mode == 2:
+            self.socket.sendto(packet, self.chaosc_address)
         self.lock.release()
 
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='chaosc_recorder')
-    parser.add_argument("-H", '--chaosc_host', required=True,
-        type=str, help='host of chaosc instance')
-    parser.add_argument("-p", '--chaosc_port', required=True,
-        type=int, help='port of chaosc instance')
-    parser.add_argument('-o', "--own_host", required=True,
-        type=str, help='my host')
-    parser.add_argument('-r', "--own_port", required=True,
-        type=int, help='my port')
-    parser.add_argument("-f", '--forward_host', metavar="HOST", required=True,
-        type=str, help='host of client the messages will be sento to')
-    parser.add_argument("-F", '--forward_port', metavar="PORT", required=True,
-        type=int, help='port of client the messages will be sento to')
-    parser.add_argument('-t', '--token',
-        type=str, default="sekret", help='token to authorize ctl commands, default="sekret"')
-    parser.add_argument('-d', '--data', default="chaosc_recorder.pickled",
-        type=str, help='path to store the recorded data')
-    result = parser.parse_args(sys.argv[1:])
+    arg_parser = create_arg_parser("chaosc_recorder")
+    main_group = add_main_group(arg_parser)
+    main_group.add_argument('-r', '--record_file',
+        default="chaosc_recorder.chaosc", help='path to store the recorded data')
+    add_chaosc_group(arg_parser)
+    add_subscriber_group(arg_parser, "chaosc_recorder")
+    args = finalize_arg_parser(arg_parser)
 
-    server = OSCRecorder(
-        (result.own_host, result.own_port),
-        (result.chaosc_host, result.chaosc_port),
-        (result.forward_host, result.forward_port),
-        result.token,
-        result.data)
+    server = OSCRecorder(args)
 
 
     server.serve_forever()
+
+
+if __name__ == '__main__':
+    import chaosc
+    main()
+

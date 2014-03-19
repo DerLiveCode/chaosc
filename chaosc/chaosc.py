@@ -194,7 +194,7 @@ class Chaosc(UDPServer):
         """Handle incoming requests
         """
         packet = request[0]
-        #print "packet", repr(packet), client_address
+        print "packet", repr(packet), client_address
         len_packet = len(packet)
         try:
             # using special decoding procedure for speed
@@ -253,7 +253,7 @@ class Chaosc(UDPServer):
         """Sends incoming osc messages to subscribed receivers
         """
 
-        print repr(packet), client_address
+        #print repr(packet), client_address
         now = time()
 
         source_stat = self.source_stats[client_address[0]]

@@ -32,7 +32,8 @@ setup(
     install_requires=[
         "Cython",
         "pyserial",
-        "Sphinx"],
+        "Sphinx",
+        "numpy"],
 
     # installing unzipped
     zip_safe = False,
@@ -50,6 +51,7 @@ setup(
     chaosc_serial_input = chaosc.chaosc_serial_input:main
     chaosc_serial = chaosc.chaosc_serial:main
     chaosc_recorder = chaosc.chaosc_recorder:main
+    chaosc_stats = chaosc.chaosc_stats:main
     """,
     # pypi metadata
     author = "Stefan Kögl",
@@ -63,7 +65,7 @@ setup(
     """,
 
     # FIXME: add license
-    license = "LGPL",
+    license = "GPL",
 
     # FIXME: add keywords
     keywords = "",
