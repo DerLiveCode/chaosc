@@ -23,7 +23,7 @@
 from __future__ import absolute_import
 
 
-import random, socket, time, argparse, sys, math
+import random, socket, time, argparse, sys, math, os.path, re
 
 import numpy
 
@@ -44,6 +44,19 @@ class OSCAnalyzer(object):
         self.data = list()
         self.rec_start = None
         self.rec_end = None
+        self.annotations = dict()
+        if args.annotation_dir:
+            for line in open(os.path.join(args.annotation_dir, args.annotation_file)):
+                regex, typetags, arg_names = line[:-1].split("; ")
+                regex = re.compile(regex)
+                self.annotations[regex] = (typetags, arg_names)
+
+    def get_annotation(self, osc_address):
+        for key, value in self.annotations.iteritems():
+            res = key.match(osc_address)
+            if res:
+                return value
+        return None
 
     def loadFile(self):
         for line in open(self.args.record_path, "rb"):
@@ -73,11 +86,15 @@ class OSCAnalyzer(object):
         print "OSCMessages/s: ", total / duration
         print "Used OSCMessages:"
         for address, args in per_address.iteritems():
+            annotation = self.get_annotation(address)
             arg_total = len(args)
             print "    %r:" % address
             print "        Total: %r" % arg_total
             for i in range(len(args[0])):
                 print "        Argument %d:" % i
+                if annotation is not None:
+                    print "            Typetag: %r" % annotation[0]
+                    print "            Argument name: %r" % annotation[1]
                 print "            Min: %r" % min(args, key=itemgetter(i))[0]
                 print "            Max: %r" % max(args, key=itemgetter(i))[0]
                 print "            Mean: %r" % (sum([item[i] for item in args]) / float(arg_total))
@@ -88,6 +105,10 @@ def main():
     arg_parser = create_arg_parser("chaosc_stats")
     main_group = arg_parser.add_argument_group("main arguments", "record file path and other useful flags")
     main_group.add_argument('-r', "--record_path", default="chaosc_recorder.chaosc")
+    main_group.add_argument('-a', "--annotation_dir",
+        help="config directory where the annotation lib file is located. default = '~/.config/chaosc'")
+    main_group.add_argument('-A', "--annotation_file", default="annotations.py",
+        help="the file with descriptions with the structure of OSCMessages, default = 'annotations_config'")
     args = finalize_arg_parser(arg_parser)
 
     analyzer = OSCAnalyzer(args)
