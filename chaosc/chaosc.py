@@ -284,10 +284,11 @@ class Chaosc(UDPServer):
         for monitoring and visualization usage.
         """
 
-        reply = OSCBundle("")
+        reply = OSCBundle()
         for (host, port), label in self.targets.iteritems():
             tmp = OSCMessage("/st")
             tmp.appendTypedArg(host, "s")
+            tmp.appendTypedArg(port, "i")
             tmp.appendTypedArg(label, "s")
             stat = self.target_stats[host]
             tmp.appendTypedArg(stat[0], "i")
@@ -309,7 +310,7 @@ class Chaosc(UDPServer):
 
         size = OSCMessage("/ne")
         reply.append(size)
-        self.sendto(reply, tuple(data[:2]))
+        self.socket.sendto(reply.encode_osc(), client_address)
 
 
     def __authorize(self, authenticate):

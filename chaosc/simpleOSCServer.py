@@ -88,7 +88,8 @@ class SimpleOSCServer(UDPServer):
 
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
         self.socket.setblocking(0)
-        self.subscribe_me()
+        if hasattr(args, "subscribe") and args.subscribe:
+            self.subscribe_me()
 
         self.callbacks = {}
 
@@ -159,9 +160,9 @@ class SimpleOSCServer(UDPServer):
         """
 
         try:
-            self.callbacks[address](address, tags, args, client_address)
+            self.callbacks[address](address, tags, args, packet, client_address)
         except KeyError:
-            self.callbacks["X"](address, tags, args, client_address)
+            self.callbacks["X"](address, tags, args, packet, client_address)
 
 
     def close(self):

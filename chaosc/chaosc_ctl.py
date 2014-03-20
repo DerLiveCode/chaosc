@@ -17,35 +17,82 @@
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2012-2013 Stefan Kögl
+from __future__ import absolute_import
 
 
 import sys, os, os.path, argparse
 from time import sleep
 from multiprocessing import Pool
-from simpleOSCServer import SimpleOSCServer
+from chaosc.simpleOSCServer import SimpleOSCServer
 
 try:
-    from c_osc_lib import OSCMessage
+    from chaosc.c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage
+    from chaosc.osc_lib  import OSCMessage
+
+from chaosc.argparser_groups import *
+
+class OSCCTLServer(SimpleOSCServer):
+    def __init__(self, args):
+        SimpleOSCServer.__init__(self, args)
+
+        self.addMsgHandler("X", self.stats_handler)
+
+        if "unsubscribe" == args.subparser_name:
+            msg = OSCMessage("/unsubscribe")
+            msg.appendTypedArg(args.host, "s")
+            msg.appendTypedArg(args.port, "i")
+            msg.appendTypedArg(args.authenticate, "s")
+            self.sendto(msg, self.chaosc_address)
+            print "unsubscribe %r:%r from %r:%r" % (
+                args.host, args.port, args.chaosc_host, args.chaosc_port)
+            sys.exit(0)
+
+        elif "subscribe" == args.subparser_name:
+            msg = OSCMessage("/subscribe")
+            msg.appendTypedArg(args.host, "s")
+            msg.appendTypedArg(args.port, "i")
+            msg.appendTypedArg(args.authenticate, "s")
+            if args.subscriber_label:
+                msg.appendTypedArg(args.subscriber_label, "s")
+            self.sendto(msg, self.chaosc_address)
+            print "subscribe %r:%r to %r:%r" % (
+                args.host, args.port, args.chaosc_host, args.chaosc_port)
+            sys.exit(0)
+
+        elif "stats" == args.subparser_name:
+            msg = OSCMessage("/stats")
+            msg.appendTypedArg(args.own_host, "s")
+            msg.appendTypedArg(args.own_port, "i")
+            self.sendto(msg, self.chaosc_address)
+        else:
+            raise Exception("unknown command")
+            sys.exit(1)
+
+    def stats_handler(self, name, desc, messages, packet, client_address):
+        print "subscribed clients:"
+        for osc_address, typetags, args in messages:
+            if osc_address == "/st":
+                print "    host=%r, port=%r, label=%r, received messages=%r" % (args[0], args[1], args[2], args[3])
+        sys.exit(0)
+
+    def handle_error(self, request, client_address):
+        """Handle an error gracefully.  May be overridden.
+
+        The default is to print a traceback and continue.
+
+        """
+        if sys.exc_type == SystemExit:
+            sys.exit(0)
 
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='chaosc_ctl')
-    parser.add_argument("-H", '--chaosc_host', required=True,
-        type=str, help='host of chaosc instance to control')
-    parser.add_argument("-p", '--chaosc_port', required=True,
-        type=int, help='port of chaosc instance to control')
-    parser.add_argument('-t', '--token', required=True,
-        type=str, default="sekret",
-        help='token to authorize ctl commands, default="sekret"')
+    arg_parser = create_arg_parser("chaosc_ctl")
+    add_main_group(arg_parser)
+    chaosc_group = add_chaosc_group(arg_parser)
 
-    # TODO: optional named flag in subscribe parser does not work, but placing it here is also awkward.
-    parser.add_argument('-l', '--label', type=str,
-        help='optional subscription label')
-
-    subparsers = parser.add_subparsers(dest="subparser_name",
+    subparsers = arg_parser.add_subparsers(dest="subparser_name",
         help='chaosc server commands')
 
     parser_subscribe = subparsers.add_parser('subscribe',
@@ -55,6 +102,11 @@ def main():
         type=str, help='hostname')
     parser_subscribe.add_argument('port', metavar="port",
         type=int, help='port number')
+    parser_subscribe.add_argument('-l', '--subscriber_label',
+        help='the string to use for subscription label, default="chaosc_transcoder"')
+    parser_subscribe.add_argument('-a', '--authenticate', type=str, default="sekret",
+        help='token to authorize interaction with chaosc, default="sekret"')
+
 
     parser_unsubscribe = subparsers.add_parser('unsubscribe',
         help='unsubscribe a target')
@@ -62,32 +114,19 @@ def main():
         help='hostname')
     parser_unsubscribe.add_argument('port', metavar="port", type=int,
         help='port number')
+    parser_unsubscribe.add_argument('-l', '--subscriber_label',
+        help='the string to use for subscription label, default="chaosc_transcoder"')
+    parser_unsubscribe.add_argument('-a', '--authenticate', type=str, default="sekret",
+        help='token to authorize interaction with chaosc, default="sekret"')
 
-    result = parser.parse_args(sys.argv[1:])
 
-    client = SimpleOSCServer(("", 7777))
-    client.connect((result.chaosc_host, result.chaosc_port))
-    if "unsubscribe" == result.subparser_name:
-        msg = OSCMessage("/unsubscribe")
-        msg.appendTypedArg(result.host, "s")
-        msg.appendTypedArg(result.port, "i")
-        msg.appendTypedArg(result.token, "s")
-        client.send(msg)
-        print "unsubscribe %r:%r from %r:%r" % (
-            result.host, result.port, result.chaosc_host, result.chaosc_port)
-    elif "subscribe" == result.subparser_name:
-        msg = OSCMessage("/subscribe")
-        msg.appendTypedArg(result.host, "s")
-        msg.appendTypedArg(result.port, "i")
-        msg.appendTypedArg(result.token, "s")
-        if result.label:
-            msg.appendTypedArg(result.label, "s")
-        client.send(msg)
-        print "subscribe %r:%r to %r:%r" % (
-            result.host, result.port, result.chaosc_host, result.chaosc_port)
-    else:
-        raise Exception("unknown command")
-        sys.exit(1)
+    parser_stats = subparsers.add_parser('stats',
+        help='retrieve subscribed clients')
+
+    result = arg_parser.parse_args(sys.argv[1:])
+
+    client = OSCCTLServer(result)
+    client.serve_forever()
 
 
 if __name__ == '__main__':

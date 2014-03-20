@@ -37,8 +37,8 @@ def create_arg_parser(progname):
 def add_main_group(arg_parser):
     own_group = arg_parser.add_argument_group('main', 'flags relevant for specifying main features and parameters')
 
-    own_group.add_argument('-o', "--own_host", default=socket.gethostname(),
-        help='my host, defaults to "socket.gethostname()"')
+    own_group.add_argument('-o', "--own_host", default="0.0.0.0",
+        help='my host, defaults to "0.0.0.0"')
     own_group.add_argument('-p', "--own_port", default=8000,
         type=int, help='my port, defaults to 8000')
     return own_group
@@ -46,8 +46,8 @@ def add_main_group(arg_parser):
 
 def add_chaosc_group(arg_parser):
     chaosc_group = arg_parser.add_argument_group('chaosc hub', 'flags relevant for interacting with chaosc')
-    chaosc_group.add_argument("-H", '--chaosc_host', default=socket.gethostname(),
-        type=str, help='host of chaosc instance')
+    chaosc_group.add_argument("-H", '--chaosc_host', default="0.0.0.0",
+        type=str, help='host of chaosc instance, defaults to "0.0.0.0"')
     chaosc_group.add_argument("-P", '--chaosc_port', default=7110,
         type=int, help='port of chaosc instance')
     return chaosc_group
@@ -68,7 +68,7 @@ def add_subscriber_group(arg_parser, subscriber_name):
 
 def add_forward_group(arg_parser):
     forward_group = arg_parser.add_argument_group("forwarding", "everything you need to forward messages to your target")
-    forward_group.add_argument("-f", '--forward_host', metavar="HOST", default=socket.gethostname(),
+    forward_group.add_argument("-f", '--forward_host', metavar="HOST", default="localhost",
         type=str, help='host or url where the messages will be sent to')
     forward_group.add_argument("-F", '--forward_port', metavar="PORT",
         type=int, help='port where the messages will be sent to')
