@@ -17,8 +17,6 @@
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-# rec start, rec end, duration, total num messages, messages/s
-# oscmessage type -> first, last, duration, num, messages/s, args max, args min, count, args mean, args meridian
 
 from __future__ import absolute_import
 
@@ -46,9 +44,11 @@ class OSCAnalyzer(object):
         self.rec_end = None
         self.annotations = dict()
         if args.annotation_dir:
-            for line in open(os.path.join(args.annotation_dir, args.annotation_file)):
+            for line in open(args.annotation_file):
                 regex, typetags, arg_names = line[:-1].split("; ")
                 regex = re.compile(regex)
+                typetags = typetags.split(", ")
+                arg_names = arg_names.split(", ")
                 self.annotations[regex] = (typetags, arg_names)
 
     def get_annotation(self, osc_address):
@@ -105,8 +105,6 @@ def main():
     arg_parser = create_arg_parser("chaosc_stats")
     main_group = arg_parser.add_argument_group("main arguments", "record file path and other useful flags")
     main_group.add_argument('-r', "--record_path", default="chaosc_recorder.chaosc")
-    main_group.add_argument('-a', "--annotation_dir",
-        help="config directory where the annotation lib file is located. default = '~/.config/chaosc'")
     main_group.add_argument('-A', "--annotation_file", default="annotations.py",
         help="the file with descriptions with the structure of OSCMessages, default = 'annotations_config'")
     args = finalize_arg_parser(arg_parser)
