@@ -280,7 +280,7 @@ class Chaosc(UDPServer):
             print e
             return None
 
-        for (host, port), label in self.targets.iteritems():
+        for (resolved_host, resolved_port), (label, host, port) in self.targets.iteritems():
             line = "host={};port={};label={}\n".format(host, port, label)
             sub_file.write(line)
         sub_file.close()
@@ -359,7 +359,7 @@ class Chaosc(UDPServer):
         """
 
         reply = OSCBundle()
-        for (host, port), label in self.targets.iteritems():
+        for (resolved_host, resolved_port), (label, host, port) in self.targets.iteritems():
             tmp = OSCMessage("/st")
             tmp.appendTypedArg(host, "s")
             tmp.appendTypedArg(port, "i")
@@ -396,7 +396,7 @@ class Chaosc(UDPServer):
         if host == "":
             host = client_address[0]
 
-        host, port = resolve_host(host, port)
+        resolved_host, resolved_port = resolve_host(host, port)
         client_host, client_port = resolve_host(client_address[0], client_address[1])
 
         if (host, port) in self.targets:
@@ -410,7 +410,7 @@ class Chaosc(UDPServer):
             self.sendto(message, (client_host, client_port))
             return
 
-        self.targets[(host, port)] = label is not None and label or ""
+        self.targets[(host, port)] = (label is not None and label or "", host, port)
         if client_address is not None:
             print "%s: subscription of '%s:%d (%s)' by '%s:%d'" % (
                 datetime.now().strftime("%x %X"), host, port, label, client_address[0],
@@ -431,10 +431,10 @@ class Chaosc(UDPServer):
     def __unsubscribe(self, host, port, client_address=None):
 
         client_host, client_port = resolve_host(client_address[0], client_address[1])
-        host, port = resolve_host(host, port)
+        resolved_host, resolved_port = resolve_host(host, port)
 
         try:
-            label = self.targets.pop((host, port))
+            label = self.targets.pop((resolved_host, resolved_port))
         except KeyError, e:
             print "%s: '%s:%d' was not subscribed" % (datetime.now().strftime("%x %X"), host, port)
             message = OSCMessage("/Failed")
