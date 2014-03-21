@@ -37,8 +37,8 @@ def create_arg_parser(progname):
 def add_main_group(arg_parser):
     own_group = arg_parser.add_argument_group('main', 'flags relevant for specifying main features and parameters')
 
-    own_group.add_argument('-o', "--own_host", default="0.0.0.0",
-        help='my host, defaults to "0.0.0.0"')
+    own_group.add_argument('-o', "--own_host", default="::",
+        help='my host, defaults to "::"')
     own_group.add_argument('-p', "--own_port", default=8000,
         type=int, help='my port, defaults to 8000')
     return own_group
@@ -46,8 +46,8 @@ def add_main_group(arg_parser):
 
 def add_chaosc_group(arg_parser):
     chaosc_group = arg_parser.add_argument_group('chaosc hub', 'flags relevant for interacting with chaosc')
-    chaosc_group.add_argument("-H", '--chaosc_host', default="0.0.0.0",
-        type=str, help='host of chaosc instance, defaults to "0.0.0.0"')
+    chaosc_group.add_argument("-H", '--chaosc_host', default="::",
+        type=str, help='host of chaosc instance, defaults to "::"')
     chaosc_group.add_argument("-P", '--chaosc_port', default=7110,
         type=int, help='port of chaosc instance')
     return chaosc_group

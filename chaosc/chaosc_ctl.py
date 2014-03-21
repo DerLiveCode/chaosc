@@ -46,7 +46,6 @@ class OSCCTLServer(SimpleOSCServer):
             self.sendto(msg, self.chaosc_address)
             print "unsubscribe %r:%r from %r:%r" % (
                 args.host, args.port, args.chaosc_host, args.chaosc_port)
-            sys.exit(0)
 
         elif "subscribe" == args.subparser_name:
             msg = OSCMessage("/subscribe")
@@ -58,22 +57,29 @@ class OSCCTLServer(SimpleOSCServer):
             self.sendto(msg, self.chaosc_address)
             print "subscribe %r:%r to %r:%r" % (
                 args.host, args.port, args.chaosc_host, args.chaosc_port)
-            sys.exit(0)
 
         elif "stats" == args.subparser_name:
             msg = OSCMessage("/stats")
             msg.appendTypedArg(args.own_host, "s")
             msg.appendTypedArg(args.own_port, "i")
             self.sendto(msg, self.chaosc_address)
+        elif "save" == args.subparser_name:
+            msg = OSCMessage("/save")
+            msg.appendTypedArg(args.authenticate, "s")
+            self.sendto(msg, self.chaosc_address)
         else:
             raise Exception("unknown command")
             sys.exit(1)
 
     def stats_handler(self, name, desc, messages, packet, client_address):
-        print "subscribed clients:"
-        for osc_address, typetags, args in messages:
-            if osc_address == "/st":
-                print "    host=%r, port=%r, label=%r, received messages=%r" % (args[0], args[1], args[2], args[3])
+        if name == "#bundle":
+            print "subscribed clients:"
+            for osc_address, typetags, args in messages:
+                if osc_address == "/st":
+                    print "    host=%r, port=%r, label=%r, received messages=%r" % (args[0], args[1], args[2], args[3])
+        else:
+            print "chaosc returned status {} with args {}".format(name, messages)
+
         sys.exit(0)
 
     def handle_error(self, request, client_address):
@@ -122,6 +128,12 @@ def main():
 
     parser_stats = subparsers.add_parser('stats',
         help='retrieve subscribed clients')
+
+    parser_save = subparsers.add_parser('save',
+        help='make save subscriptions to file')
+    parser_save.add_argument('-a', '--authenticate', type=str, default="sekret",
+        help='token to authorize interaction with chaosc, default="sekret"')
+
 
     result = arg_parser.parse_args(sys.argv[1:])
 
