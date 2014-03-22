@@ -69,7 +69,7 @@ class Chaosc(UDPServer):
 
         now = datetime.now().strftime("%x %X")
         print "%s: starting up chaosc-%s..." % (
-            now, _version.__version__)
+            now, chaosc._version.__version__)
         UDPServer.__init__(self, server_address, DatagramRequestHandler)
         print "%s: binding to %s:%r" % (
             now, self.socket.getsockname()[0], server_address[1])
