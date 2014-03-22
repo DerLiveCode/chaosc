@@ -27,8 +27,6 @@ import argparse
 import sys
 import socket
 
-from chaosc.simpleOSCServer import SimpleOSCServer
-
 
 def create_arg_parser(progname):
     return argparse.ArgumentParser(prog=progname)
@@ -93,11 +91,6 @@ def add_filtering_group(arg_parser):
 
 def finalize_arg_parser(arg_parser):
     return arg_parser.parse_args(sys.argv[1:])
-
-
-class ForwardingMixIn(object):
-    def __init__(self, args):
-        self.forward_address = socket.getaddrinfo(args.forward_host, args.forward_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
 
 
 if __name__ == '__main__':

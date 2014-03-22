@@ -37,7 +37,7 @@ from chaosc.argparser_groups import *
 from chaosc.simpleOSCServer import SimpleOSCServer
 
 import chaosc._version
-
+from chaosc.lib import resolve_host
 
 try:
     from chaosc.c_osc_lib import OSCMessage
@@ -62,7 +62,7 @@ class ChaoscTranscoder(SimpleOSCServer):
         print "%s: starting up chaosc_transcoder-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
         SimpleOSCServer.__init__(self, args)
 
-        self.forward_address = socket.getaddrinfo(args.forward_host, args.forward_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+        self.forward_address = resolve_host(args.forward_host, args.forward_port)
 
         basename = os.path.splitext(args.transcoding_file)[0]
         a,b,c = imp.find_module(basename, [args.transcoding_dir,])

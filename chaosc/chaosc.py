@@ -19,6 +19,9 @@
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
+from __future__ import absolute_import
+
+
 import socket
 import sys
 import os, os.path
@@ -31,31 +34,20 @@ from collections import defaultdict
 from SocketServer import UDPServer, DatagramRequestHandler
 from types import FunctionType, MethodType
 
-import _version
+import chaosc._version
 
-from argparser_groups import *
+from chaosc.argparser_groups import *
+from chaosc.lib import resolve_host, statlist
 
 try:
-    from c_osc_lib import (OSCBundle, OSCMessage,
+    from chaosc.c_osc_lib import (OSCBundle, OSCMessage,
         proxy_decode_osc, OSCError, OSCBundleFound)
 except ImportError:
-    from osc_lib import (OSCBundle, OSCMessage, proxy_decode_osc,
+    from chaosc.osc_lib import (OSCBundle, OSCMessage, proxy_decode_osc,
         OSCError, OSCBundleFound)
 
 
-__all__ = ["Chaosc",]
-
-
-def statlist():
-    """helper 2-item list factory for defaultdicts
-
-    :rtype: list
-    """
-    return [0, 0]
-
-
-def resolve_host(host, port):
-    return socket.getaddrinfo(host, port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME | socket.AI_ADDRCONFIG)[-1][4][:2]
+__all__ = ["main",]
 
 
 class Chaosc(UDPServer):

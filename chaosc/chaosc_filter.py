@@ -41,6 +41,7 @@ from chaosc.simpleOSCServer import SimpleOSCServer
 
 import chaosc._version
 from chaosc.argparser_groups import *
+from chaosc.lib import resolve_host
 
 
 class FilterOSCServer(SimpleOSCServer):
@@ -59,7 +60,7 @@ class FilterOSCServer(SimpleOSCServer):
 
         SimpleOSCServer.__init__(self, args)
 
-        self.forward_address = socket.getaddrinfo(args.forward_host, args.forward_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+        self.forward_address = resolve_host(args.forward_host, args.forward_port)
 
         self.config_dir = args.filtering_config_dir
 

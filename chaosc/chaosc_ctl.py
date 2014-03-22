@@ -20,10 +20,11 @@
 from __future__ import absolute_import
 
 
-import sys, os, os.path, argparse
+import sys, os, os.path, argparse, threading, time
 from time import sleep
 from multiprocessing import Pool
 from chaosc.simpleOSCServer import SimpleOSCServer
+from datetime import datetime
 
 try:
     from chaosc.c_osc_lib import OSCMessage
@@ -37,6 +38,7 @@ class OSCCTLServer(SimpleOSCServer):
         SimpleOSCServer.__init__(self, args)
 
         self.addMsgHandler("X", self.stats_handler)
+
 
         if "unsubscribe" == args.subparser_name:
             msg = OSCMessage("/unsubscribe")
@@ -67,6 +69,8 @@ class OSCCTLServer(SimpleOSCServer):
             msg = OSCMessage("/save")
             msg.appendTypedArg(args.authenticate, "s")
             self.sendto(msg, self.chaosc_address)
+        elif "foo" == args.subparser_name:
+            time.sleep(15)
         else:
             raise Exception("unknown command")
             sys.exit(1)
@@ -88,8 +92,10 @@ class OSCCTLServer(SimpleOSCServer):
         The default is to print a traceback and continue.
 
         """
+        print sys.exc_type
         if sys.exc_type == SystemExit:
             sys.exit(0)
+
 
 
 
@@ -134,8 +140,15 @@ def main():
     parser_save.add_argument('-a', '--authenticate', type=str, default="sekret",
         help='token to authorize interaction with chaosc, default="sekret"')
 
-
     result = arg_parser.parse_args(sys.argv[1:])
+
+
+    def exit():
+        print "%s: your last command seems to get no response - I'm dying now gracefully" % datetime.now().strftime("%x %X")
+        os._exit(-1)
+
+    killit = threading.Timer(6.0, exit)
+    killit.start()
 
     client = OSCCTLServer(result)
     client.serve_forever()

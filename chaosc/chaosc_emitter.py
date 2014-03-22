@@ -28,6 +28,8 @@ except ImportError, e:
     print e
     from chaosc.osc_lib import *
 
+from chaosc.lib import resolve_host
+
 from multiprocessing import Pool
 
 from chaosc.argparser_groups import *
@@ -40,7 +42,7 @@ class Runner(object):
     def __call__(self):
 
         sock = socket.socket(2, 2, 17)
-        host, port = socket.getaddrinfo(self.args.chaosc_host, self.args.chaosc_port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME)[-1][4][:2]
+        host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port)
         print host, port
         sock.connect((host, port))
         pi = math.pi
