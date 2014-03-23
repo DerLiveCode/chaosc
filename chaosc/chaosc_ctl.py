@@ -17,7 +17,7 @@
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2012-2013 Stefan Kögl
-from __future__ import absolute_import
+
 
 
 import sys, os, os.path, argparse, threading, time
@@ -46,8 +46,8 @@ class OSCCTLServer(SimpleOSCServer):
             msg.appendTypedArg(args.port, "i")
             msg.appendTypedArg(args.authenticate, "s")
             self.sendto(msg, self.chaosc_address)
-            print "unsubscribe %r:%r from %r:%r" % (
-                args.host, args.port, args.chaosc_host, args.chaosc_port)
+            print("unsubscribe %r:%r from %r:%r" % (
+                args.host, args.port, args.chaosc_host, args.chaosc_port))
 
         elif "subscribe" == args.subparser_name:
             msg = OSCMessage("/subscribe")
@@ -57,8 +57,8 @@ class OSCCTLServer(SimpleOSCServer):
             if args.subscriber_label:
                 msg.appendTypedArg(args.subscriber_label, "s")
             self.sendto(msg, self.chaosc_address)
-            print "subscribe %r:%r to %r:%r" % (
-                args.host, args.port, args.chaosc_host, args.chaosc_port)
+            print("subscribe %r:%r to %r:%r" % (
+                args.host, args.port, args.chaosc_host, args.chaosc_port))
 
         elif "stats" == args.subparser_name:
             msg = OSCMessage("/stats")
@@ -77,12 +77,12 @@ class OSCCTLServer(SimpleOSCServer):
 
     def stats_handler(self, name, desc, messages, packet, client_address):
         if name == "#bundle":
-            print "subscribed clients:"
+            print("subscribed clients:")
             for osc_address, typetags, args in messages:
                 if osc_address == "/st":
-                    print "    host=%r, port=%r, label=%r, received messages=%r" % (args[0], args[1], args[2], args[3])
+                    print("    host=%r, port=%r, label=%r, received messages=%r" % (args[0], args[1], args[2], args[3]))
         else:
-            print "chaosc returned status {} with args {}".format(name, messages)
+            print("chaosc returned status {} with args {}".format(name, messages))
 
         sys.exit(0)
 
@@ -92,8 +92,8 @@ class OSCCTLServer(SimpleOSCServer):
         The default is to print a traceback and continue.
 
         """
-        print sys.exc_type
-        if sys.exc_type == SystemExit:
+        print(sys.exc_info()[0])
+        if sys.exc_info()[0] == SystemExit:
             sys.exit(0)
 
 
@@ -144,7 +144,7 @@ def main():
 
 
     def exit():
-        print "%s: your last command seems to get no response - I'm dying now gracefully" % datetime.now().strftime("%x %X")
+        print("%s: your last command seems to get no response - I'm dying now gracefully" % datetime.now().strftime("%x %X"))
         os._exit(-1)
 
     killit = threading.Timer(6.0, exit)

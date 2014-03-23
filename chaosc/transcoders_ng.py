@@ -23,9 +23,9 @@ from operator import itemgetter
 import re
 
 try:
-    from c_osc_lib import OSCMessage
+    from .c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage
+    from .osc_lib  import OSCMessage
 
 
 class ITranscoder(object):

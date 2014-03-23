@@ -27,7 +27,7 @@ skills to master them.
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 import sys, os, os.path, re, time, imp, atexit
 
@@ -59,7 +59,7 @@ class ChaoscTranscoder(SimpleOSCServer):
         """
 
 
-        print "%s: starting up chaosc_transcoder-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
+        print("%s: starting up chaosc_transcoder-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__))
         SimpleOSCServer.__init__(self, args)
 
         self.forward_address = resolve_host(args.forward_host, args.forward_port)

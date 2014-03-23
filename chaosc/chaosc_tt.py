@@ -23,11 +23,11 @@ import sys, argparse
 from time import sleep
 from multiprocessing import Pool
 try:
-    from c_osc_lib import OSCMessage
+    from .c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage
+    from .osc_lib  import OSCMessage
 
-from simpleOSCServer import *
+from .simpleOSCServer import *
 
 
 parser = argparse.ArgumentParser(prog='chaosc-tt')
@@ -52,7 +52,7 @@ result = parser.parse_args(sys.argv[1:])
 
 class TestOSCServer(SimpleOSCServer):
     def process_request(self, request, client_address):
-        print "request", repr(request[0])
+        print("request", repr(request[0]))
 
 
 def do(ix):

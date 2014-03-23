@@ -20,7 +20,7 @@
 # Copyright (C) 2014 Stefan Kögl
 
 
-from __future__ import absolute_import
+
 
 
 import argparse

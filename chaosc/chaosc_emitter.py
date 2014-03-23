@@ -17,15 +17,15 @@
 #
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 
 import random, socket, time, argparse, sys, math
 from copy import copy
 try:
     from chaosc.c_osc_lib import *
-except ImportError, e:
-    print e
+except ImportError as e:
+    print(e)
     from chaosc.osc_lib import *
 
 from chaosc.lib import resolve_host
@@ -41,30 +41,30 @@ class Runner(object):
         self.args = args
     def __call__(self):
 
-        sock = socket.socket(2, 2, 17)
+        sock = socket.socket(10, 2, 17)
         host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port)
-        print host, port
+        print(host, port)
         sock.connect((host, port))
         pi = math.pi
         count1 = random.random() * math.pi * 2
         #count2 = random.random() * math.pi * 2
         count2 = 0
         count3 = 0
-        step1 = math.pi * 2 / 300.
+        step1 = math.pi * 2 // 300.
         #step2 = math.pi * 2 / 300.
-        step3 = math.pi * 2 / 400.
+        step3 = math.pi * 2 // 400.
         foo = 0
 
         while self.running:
             #reply = OSCBundle()
-            m1 = OSCMessage("/uwe/ekg")
-            m1.appendTypedArg(254 * ((math.e ** (2 * -count1)) * math.cos(count1 * 10 * math.pi) + 1) / 2, "i")
+            m1 = OSCMessage(b"/uwe/ekg")
+            m1.appendTypedArg(int(254 * ((math.e ** (2 * -count1)) * math.cos(count1 * 10 * math.pi) + 1) // 2), b"i")
 
-            m2 = OSCMessage("/merle/ekg")
-            m2.appendTypedArg(254 - count2, "i")
+            m2 = OSCMessage(b"/merle/ekg")
+            m2.appendTypedArg(254 - count2, b"i")
 
-            m3 = OSCMessage("/bjoern/ekg")
-            m3.appendTypedArg(254 * (math.cos(count3) + 1) / 2, "i")
+            m3 = OSCMessage(b"/bjoern/ekg")
+            m3.appendTypedArg(int(254 * (math.cos(count3) + 1) // 2), b"i")
 
             sent = sock.sendall(m1.encode_osc())
             sent = sock.sendall(m2.encode_osc())
@@ -76,25 +76,25 @@ class Runner(object):
 
             foo +=1
             if foo == 1000:
-                m1 = OSCMessage("/plot/uwe")
-                m1.appendTypedArg(0, "i")
-                m1.appendTypedArg(1, "i")
-                m1.appendTypedArg(1, "i")
+                m1 = OSCMessage(b"/plot/uwe")
+                m1.appendTypedArg(0, b"i")
+                m1.appendTypedArg(1, b"i")
+                m1.appendTypedArg(1, b"i")
                 binary = m1.encode_osc()
                 sent = sock.sendall(binary)
             elif foo == 2000:
-                m1 = OSCMessage("/plot/merle")
-                m1.appendTypedArg(0, "i")
+                m1 = OSCMessage(b"/plot/merle")
+                m1.appendTypedArg(0, b"i")
                 binary = m1.encode_osc()
                 sent = sock.sendall(binary)
             elif foo == 3000:
-                m1 = OSCMessage("/plot/uwe")
-                m1.appendTypedArg(1, "i")
+                m1 = OSCMessage(b"/plot/uwe")
+                m1.appendTypedArg(1, b"i")
                 binary = m1.encode_osc()
                 sent = sock.sendall(binary)
 
-                m1 = OSCMessage("/plot/merle")
-                m1.appendTypedArg(1, "i")
+                m1 = OSCMessage(b"/plot/merle")
+                m1.appendTypedArg(1, b"i")
                 binary = m1.encode_osc()
                 sent = sock.sendall(binary)
                 foo = 0

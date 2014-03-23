@@ -30,7 +30,7 @@ transcoding.py file.
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 
 import sys, os, os.path, re, atexit
@@ -56,7 +56,7 @@ class FilterOSCServer(SimpleOSCServer):
         :param args: return value of argparse.parse_args
         :type args: namespace object
         """
-        print "%s: starting up chaosc_filter-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
+        print("%s: starting up chaosc_filter-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__))
 
         SimpleOSCServer.__init__(self, args)
 
@@ -74,7 +74,7 @@ class FilterOSCServer(SimpleOSCServer):
 
     def load_filters(self):
         now = datetime.now().strftime("%x %X")
-        print "%s: loading filter configs..." % now
+        print("%s: loading filter configs..." % now)
         regex = re.compile("filter_(\d+)\.config")
         scene_filters = list()
         for i in os.listdir(self.config_dir):
@@ -87,11 +87,11 @@ class FilterOSCServer(SimpleOSCServer):
 
         scene_filters.sort(key=itemgetter(0))
         if scene_filters[0][0] > len(scene_filters):
-            print "Warning: some filter config files for scenes are missing. " \
-                "Your scene filters will be out of sync!"
+            print("Warning: some filter config files for scenes are missing. " \
+                "Your scene filters will be out of sync!")
 
         for ix, scene_filter in scene_filters:
-            print "%s: loading filter config for scene %s..." % (now, ix)
+            print("%s: loading filter config for scene %s..." % (now, ix))
             lines = open(
                 os.path.join(self.config_dir, scene_filter)).readlines()
             for line in lines:
@@ -100,10 +100,10 @@ class FilterOSCServer(SimpleOSCServer):
                     self.scene[1].append(re.compile(regex))
                 else:
                     self.scene[0].append(re.compile(regex))
-                print "%s: new %s entry = %r..." % (
-                    datetime.now().strftime("%x %X"), liste, regex)
+                print("%s: new %s entry = %r..." % (
+                    datetime.now().strftime("%x %X"), liste, regex))
             self.scenes.append((list(), list()))
-        print "%s: loaded %d scenes" % (now, len(scene_filters))
+        print("%s: loaded %d scenes" % (now, len(scene_filters)))
 
 
 
@@ -144,21 +144,21 @@ class FilterOSCServer(SimpleOSCServer):
         """
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        if osc_address == "/scene":
-            print "%s: switching scene from %d to %d" % (
-                now, self.scene_id, args[0])
+        if osc_address == b"/scene":
+            print("%s: switching scene from %d to %d" % (
+                now, self.scene_id, args[0]))
             self.scene_id = args[0]
             self.scene = self.scenes[self.scene_id]
             return
-        elif osc_address == "/forward":
+        elif osc_address == b"/forward":
             self.scene_id += 1
             self.scene = self.scenes[self.scene_id]
-            print "%s: switching scene forward to %d" % (now, self.scene_id)
+            print("%s: switching scene forward to %d" % (now, self.scene_id))
             return
-        elif osc_address == "/back":
+        elif osc_address == b"/back":
             self.scene_id -= 1
             self.scene = self.scenes[self.scene_id]
-            print "%s: switching scene back to %d" % (now, self.scene_id)
+            print("%s: switching scene back to %d" % (now, self.scene_id))
             return
 
         if not self.filter(osc_address):

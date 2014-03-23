@@ -19,16 +19,16 @@
 
 
 import sys, argparse, re, socket, serial, time, os.path
-from simpleOSCServer import SimpleOSCServer
+from .simpleOSCServer import SimpleOSCServer
 from threading import Thread, Lock
 from datetime import datetime
-import _version
+from . import _version
 
 
 try:
-    from c_osc_lib import *
+    from .c_osc_lib import *
 except ImportError:
-    from osc_lib  import *
+    from .osc_lib  import *
 
 
 def serial_input_representation(src, dst):
@@ -57,7 +57,7 @@ def create_msg_for_serial(inputs):
 class SerialOSCServer(SimpleOSCServer):
     def __init__(self, result):
         d = datetime.now().strftime("%x %X")
-        print "%s: starting up chaosc_serial-%s..." % (d, _version.__version__)
+        print("%s: starting up chaosc_serial-%s..." % (d, _version.__version__))
         self.result = result
 
         self.output_address = (result.host, result.port)
@@ -66,14 +66,14 @@ class SerialOSCServer(SimpleOSCServer):
         self.regex = re.compile("/source(\d+)/out(\d+)")
         self.load_config()
         SimpleOSCServer.__init__(self, (result.own_host, result.own_port))
-        print "%s: binding to %s:%r" % (d, result.own_host, result.own_port)
+        print("%s: binding to %s:%r" % (d, result.own_host, result.own_port))
         self.subscribe_me((result.chaosc_host, result.chaosc_port), (result.own_host, result.own_port), result.token,  "chaosc_serial")
         self.thread = SerialPollingThread(self)
 
 
     def load_config(self):
         d = datetime.now().strftime("%x %X")
-        print "%s: loading config..." % (d)
+        print("%s: loading config..." % (d))
         try:
             data = open(os.path.join(self.result.config_dir,
                 "chaosc_serial.config"), "r").readlines()
@@ -111,7 +111,7 @@ class SerialOSCServer(SimpleOSCServer):
             foo()
         elif osc_address == "#bundle":
             for osc_address, typetags, args in args:
-                print "bundle msg", osc_address, typetags, args
+                print("bundle msg", osc_address, typetags, args)
                 m = self.regex.match(osc_address)
                 if m:
                     foo()
@@ -147,7 +147,7 @@ class SerialPollingThread(Thread):
                 try:
                     #self.server.lock.release()
                     pass
-                except Exception, e:
+                except Exception as e:
                     pass
 
 

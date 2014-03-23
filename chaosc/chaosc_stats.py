@@ -18,7 +18,7 @@
 # Copyright (C) 2012-2014 Stefan Kögl
 
 
-from __future__ import absolute_import
+
 
 
 import random, socket, time, argparse, sys, math, os.path, re
@@ -27,8 +27,8 @@ import numpy
 
 try:
     from chaosc.c_osc_lib import decode_osc
-except ImportError, e:
-    print e
+except ImportError as e:
+    print(e)
     from chaosc.osc_lib import decode_osc
 
 from chaosc.argparser_groups import *
@@ -52,7 +52,7 @@ class OSCAnalyzer(object):
                 self.annotations[regex] = (typetags, arg_names)
 
     def get_annotation(self, osc_address):
-        for key, value in self.annotations.iteritems():
+        for key, value in self.annotations.items():
             res = key.match(osc_address)
             if res:
                 return value
@@ -79,27 +79,27 @@ class OSCAnalyzer(object):
 
         duration = self.rec_end - self.rec_start
         total = len(self.data)
-        print "Record Start: ", time.ctime(self.rec_start)
-        print "Record End: ", time.ctime(self.rec_end)
-        print "Duration: %f s" % (self.rec_end - self.rec_start)
-        print "Total OSCMessages: ", total
-        print "OSCMessages/s: ", total / duration
-        print "Used OSCMessages:"
-        for address, args in per_address.iteritems():
+        print("Record Start: ", time.ctime(self.rec_start))
+        print("Record End: ", time.ctime(self.rec_end))
+        print("Duration: %f s" % (self.rec_end - self.rec_start))
+        print("Total OSCMessages: ", total)
+        print("OSCMessages/s: ", total / duration)
+        print("Used OSCMessages:")
+        for address, args in per_address.items():
             annotation = self.get_annotation(address)
             arg_total = len(args)
-            print "    %r:" % address
-            print "        Total: %r" % arg_total
+            print("    %r:" % address)
+            print("        Total: %r" % arg_total)
             for i in range(len(args[0])):
-                print "        Argument %d:" % i
+                print("        Argument %d:" % i)
                 if annotation is not None:
-                    print "            Typetag: %r" % annotation[0]
-                    print "            Argument name: %r" % annotation[1]
-                print "            Min: %r" % min(args, key=itemgetter(i))[0]
-                print "            Max: %r" % max(args, key=itemgetter(i))[0]
-                print "            Mean: %r" % (sum([item[i] for item in args]) / float(arg_total))
+                    print("            Typetag: %r" % annotation[0])
+                    print("            Argument name: %r" % annotation[1])
+                print("            Min: %r" % min(args, key=itemgetter(i))[0])
+                print("            Max: %r" % max(args, key=itemgetter(i))[0])
+                print("            Mean: %r" % (sum([item[i] for item in args]) / float(arg_total)))
                 median = numpy.median(numpy.array([item[i] for item in args]))
-                print "            Median: %r" % median
+                print("            Median: %r" % median)
 
 def main():
     arg_parser = create_arg_parser("chaosc_stats")

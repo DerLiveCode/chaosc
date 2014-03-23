@@ -23,9 +23,9 @@ from operator import itemgetter
 import re
 
 try:
-    from c_osc_lib import OSCMessage
+    from .c_osc_lib import OSCMessage
 except ImportError:
-    from osc_lib  import OSCMessage
+    from .osc_lib  import OSCMessage
 
 
 __all__ = ["ITranscoderHandler",
@@ -50,7 +50,7 @@ def str_converter(transcoder, value):
     return str(value)
 
 def unicode_converter(transcoder, value):
-    return unicode(value)
+    return str(value)
 
 converters = {
     "midi" : midi_converter,
@@ -97,7 +97,7 @@ class DampValue(ITranscoderHandler):
 
     def __call__(self, client, msg):
         new_message = OSCMessage(msg.address)
-        data = msg.items()
+        data = list(msg.items())
         out = list()
         for tag, value in data:
             out.append((tag, value * self.factor))
@@ -169,7 +169,7 @@ class MidiChanger(ITranscoderHandler):
         fmt_args.sort(key=itemgetter(0))
         osc_args.sort(key=itemgetter(0))
 
-        new_message = OSCMessage(self.to_fmt.format(*map(itemgetter(1), fmt_args)))
+        new_message = OSCMessage(self.to_fmt.format(*list(map(itemgetter(1), fmt_args))))
 
         for pos, value in osc_args:
             new_message.append(value)

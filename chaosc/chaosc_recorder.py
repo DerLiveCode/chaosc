@@ -17,10 +17,10 @@
 #
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
 
 
-import sys, os, os.path, argparse, re, cPickle, time, asyncore, socket, thread
+
+import sys, os, os.path, argparse, re, pickle, time, asyncore, socket, _thread
 
 from threading import Thread, Lock
 from chaosc.simpleOSCServer import SimpleOSCServer
@@ -39,23 +39,23 @@ class ReplayThread(Thread):
         self.playing = True
 
     def run(self):
-        print "Replay started"
+        print("Replay started")
         playstart = time.time()
         current_packet = 0
         if not self.recorder.data:
-            print "Replay ended"
+            print("Replay ended")
             self.playing = False
             return
 
         while self.playing:
-            print "pass"
+            print("pass")
             try:
                 timestamp, packet = self.recorder.data[current_packet]
                 if time.time() - playstart <= 0.0:
                     self.recorder.socket.sendto(packet, self.recorder.chaosc_address)
                 current_packet +=1
-            except IndexError, e:
-                print "Replay ended"
+            except IndexError as e:
+                print("Replay ended")
                 self.playing = False
 
 class ControlThread(Thread):
@@ -101,8 +101,8 @@ class ControlThread(Thread):
             elif char == "s":
                 try:
                     self.recorder.save()
-                except Exception, e:
-                    print e
+                except Exception as e:
+                    print(e)
             elif char == "q":
                 termios.tcsetattr(self.fd, termios.TCSADRAIN, self.remember_attributes)
                 sys.stdout.write("\033[1G")
@@ -136,18 +136,18 @@ class OSCRecorder(SimpleOSCServer):
 
 
     def help(self):
-        print "This is chaosc_recorder."
-        print
-        print "press h to get this help"
-        print "press q to quit"
-        print "press p to play"
-        print "press b for stop"
-        print "press r to start record"
-        print
-        print "Current mode: %s..." % self.modeName()
+        print("This is chaosc_recorder.")
+        print()
+        print("press h to get this help")
+        print("press q to quit")
+        print("press p to play")
+        print("press b for stop")
+        print("press r to start record")
+        print()
+        print("Current mode: %s..." % self.modeName())
 
     def play(self):
-        print "Started replay..."
+        print("Started replay...")
         self.lock.acquire()
         self.mode = 2
         self.thread = ReplayThread(self)
@@ -155,7 +155,7 @@ class OSCRecorder(SimpleOSCServer):
         self.lock.release()
 
     def record(self):
-        print "Started recording..."
+        print("Started recording...")
         self.lock.acquire()
         if self.mode == 2:
             self.thread.playing = False
@@ -180,7 +180,7 @@ class OSCRecorder(SimpleOSCServer):
             self.thread = None
 
         self.mode = 0
-        print "stopped..."
+        print("stopped...")
         self.lock.release()
 
 

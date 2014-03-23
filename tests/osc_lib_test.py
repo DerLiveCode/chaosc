@@ -14,8 +14,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
-# Copyright (C) 2012-2013 Stefan Kögl
+#
+# Copyright (C) 2012-2014 Stefan Kögl
 
 from chaosc.c_osc_lib import (OSCMessage as CMessage,
     OSCBundle as CBundle,
@@ -27,30 +27,30 @@ import unittest
 
 class TestCOSCMessage(unittest.TestCase):
     def test_osc_message(self):
-        msg = CMessage("/my/osc/address")
-        msg.append('something')
-        msg.insert(0, 'something else')
-        msg[1] = 'entirely'
+        msg = CMessage(b"/my/osc/address")
+        msg.append(b'something')
+        msg.insert(0, b'something else')
+        msg[1] = b'entirely'
         msg.extend([1,2,3.])
-        msg.appendTypedArg(4, "i")
-        msg.appendTypedArg(5, "i")
+        msg.appendTypedArg(4, b"i")
+        msg.appendTypedArg(5, b"i")
         msg.append(6.)
         del msg[3:6]
         self.assertEqual(msg.pop(-2), 5)
-        self.assertEqual(msg.__str__(), "/my/osc/address ['something else', 'entirely', 1, 6.0]")
+        self.assertEqual(msg.__str__(), "b'/my/osc/address' [b'something else', b'entirely', 1, 6.0]")
         binary = msg.encode_osc()
-        self.assertEqual(binary, '/my/osc/address\x00,ssif\x00\x00\x00something else\x00\x00entirely\x00\x00\x00\x00\x00\x00\x00\x01@\xc0\x00\x00')
+        self.assertEqual(binary, b'/my/osc/address\x00,ssif\x00\x00\x00something else\x00\x00entirely\x00\x00\x00\x00\x00\x00\x00\x01@\xc0\x00\x00')
         msg2 = c_decode_osc(binary, 0, len(binary))
-        self.assertEqual(msg2.__repr__(), "('/my/osc/address', ['s', 's', 'i', 'f'], ['something else', 'entirely', 1, 6.0])")
+        self.assertEqual(msg2.__repr__(), "(b'/my/osc/address', [b's', b's', b'i', b'f'], [b'something else', b'entirely', 1, 6.0])")
 
 
 class TestCOSCBundle(unittest.TestCase):
     def test_osc_message(self):
-        msg = CMessage("/my/osc/address")
-        msg.appendTypedArg(4, "i")
-        msg.appendTypedArg("foo", "s")
-        msg2 = CMessage("/other/address")
-        msg.appendTypedArg(4., "f")
+        msg = CMessage(b"/my/osc/address")
+        msg.appendTypedArg(4, b"i")
+        msg.appendTypedArg(b"foo", b"s")
+        msg2 = CMessage(b"/other/address")
+        msg.appendTypedArg(4., b"f")
         bundle = CBundle()
         bundle.append(msg)
         bundle.append(msg2)
@@ -58,36 +58,36 @@ class TestCOSCBundle(unittest.TestCase):
         address, typetags, args = c_decode_osc(binary, 0, len(binary))
         self.assertEqual(typetags, bundle.timetag)
         self.assertEqual(list(args), [
-            ('/my/osc/address', ['i', 's', 'f'], [4, 'foo', 4.0]),
-            ('/other/address', [], [])]
+            (b'/my/osc/address', [b'i', b's', b'f'], [4, b'foo', 4.0]),
+            (b'/other/address', [], [])]
         )
 
 class TestPythonOSCMessage(unittest.TestCase):
     def test_osc_message(self):
-        msg = PMessage("/my/osc/address")
-        msg.append('something')
-        msg.insert(0, 'something else')
-        msg[1] = 'entirely'
+        msg = PMessage(b"/my/osc/address")
+        msg.append(b'something')
+        msg.insert(0, b'something else')
+        msg[1] = b'entirely'
         msg.extend([1, 2, 3.])
-        msg.appendTypedArg(4, "i")
-        msg.appendTypedArg(5, "i")
+        msg.appendTypedArg(4, b"i")
+        msg.appendTypedArg(5, b"i")
         msg.append(6.)
         del msg[3:6]
         self.assertEqual(msg.pop(-2), 5)
-        self.assertEqual(msg.__str__(), "/my/osc/address ['something else', 'entirely', 1, 6.0]")
+        self.assertEqual(msg.__str__(), "b'/my/osc/address' [b'something else', b'entirely', 1, 6.0]")
         binary = msg.encode_osc()
-        self.assertEqual(binary, '/my/osc/address\x00,ssif\x00\x00\x00something else\x00\x00entirely\x00\x00\x00\x00\x00\x00\x00\x01@\xc0\x00\x00')
+        self.assertEqual(binary, b'/my/osc/address\x00,ssif\x00\x00\x00something else\x00\x00entirely\x00\x00\x00\x00\x00\x00\x00\x01@\xc0\x00\x00')
         msg2 = p_decode_osc(binary, 0, len(binary))
-        self.assertEqual(msg2.__repr__(), "('/my/osc/address', ['s', 's', 'i', 'f'], ['something else', 'entirely', 1, 6.0])")
+        self.assertEqual(msg2.__repr__(), "(b'/my/osc/address', [b's', b's', b'i', b'f'], [b'something else', b'entirely', 1, 6.0])")
 
 
 class TestPythonOSCBundle(unittest.TestCase):
     def test_osc_message(self):
-        msg = PMessage("/my/osc/address")
-        msg.appendTypedArg(4, "i")
-        msg.appendTypedArg("foo", "s")
-        msg2 = PMessage("/other/address")
-        msg.appendTypedArg(4., "f")
+        msg = PMessage(b"/my/osc/address")
+        msg.appendTypedArg(4, b"i")
+        msg.appendTypedArg(b"foo", b"s")
+        msg2 = PMessage(b"/other/address")
+        msg.appendTypedArg(4., b"f")
         bundle = PBundle()
         bundle.append(msg)
         bundle.append(msg2)
@@ -95,8 +95,8 @@ class TestPythonOSCBundle(unittest.TestCase):
         address, typetags, args = p_decode_osc(binary, 0, len(binary))
         self.assertEqual(typetags, bundle.timetag)
         self.assertEqual(list(args), [
-            ('/my/osc/address', ['i', 's', 'f'], [4, 'foo', 4.0]),
-            ('/other/address', [], [])]
+            (b'/my/osc/address', [b'i', b's', b'f'], [4, b'foo', 4.0]),
+            (b'/other/address', [], [])]
         )
 
 

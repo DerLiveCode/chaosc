@@ -18,7 +18,7 @@
 # Copyright (C) 2012-2013 Stefan Kögl
 
 
-from __future__ import absolute_import
+
 
 
 import socket
@@ -28,7 +28,7 @@ import atexit
 from datetime import datetime
 from struct import pack
 from types import TupleType, IntType, StringTypes, FunctionType, MethodType
-from SocketServer import UDPServer, DatagramRequestHandler, ThreadingUDPServer, ForkingUDPServer
+from socketserver import UDPServer, DatagramRequestHandler, ThreadingUDPServer, ForkingUDPServer
 
 from chaosc import _version
 
@@ -59,7 +59,7 @@ class OSCRequestHandler(DatagramRequestHandler):
         len_packet = len(packet)
         try:
             osc_address, typetags, args = decode_osc(packet, 0, len_packet)
-        except OSCError, e:
+        except OSCError as e:
             return
         self.server.dispatchMessage(osc_address, typetags, args, packet, self.client_address)
 
@@ -88,7 +88,7 @@ class SimpleOSCServer(UDPServer):
         self.own_address = own_host, own_port = resolve_host(args.own_host, args.own_port)
         self.chaosc_address = chaosc_host, chaosc_port = resolve_host(args.chaosc_host, args.chaosc_port)
 
-        print "%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), own_host, own_port)
+        print("%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), own_host, own_port))
         UDPServer.__init__(self, self.own_address, OSCRequestHandler)
 
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
@@ -111,7 +111,7 @@ class SimpleOSCServer(UDPServer):
         :param token: token to get authorized for subscription
         :type token: str
         """
-        print "%s: subscribing to '%s:%d' with label %r" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1], self.args.subscriber_label)
+        print("%s: subscribing to '%s:%d' with label %r" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1], self.args.subscriber_label))
         msg = OSCMessage("/subscribe")
         msg.appendTypedArg(self.own_address[0], "s")
         msg.appendTypedArg(self.own_address[1], "i")
@@ -125,7 +125,7 @@ class SimpleOSCServer(UDPServer):
         if self.args.keep_subscribed:
             return
 
-        print "%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1])
+        print("%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1]))
         msg = OSCMessage("/unsubscribe")
         msg.appendTypedArg(self.own_address[0], "s")
         msg.appendTypedArg(self.own_address[1], "i")
@@ -183,7 +183,7 @@ class SimpleOSCServer(UDPServer):
         try:
             self.socket.connect(address)
             self.client_address = address
-        except socket.error, e:
+        except socket.error as e:
             self.client_address = None
             raise OSCError("SocketError: %s" % str(e))
 
@@ -196,7 +196,7 @@ class SimpleOSCServer(UDPServer):
 
         try:
             self.socket.sendall(msg.encode_osc())
-        except socket.error, e:
+        except socket.error as e:
             if e[0] in (7, 65):     # 7 = 'no address associated with nodename',  65 = 'no route to host'
                 raise e
             else:
@@ -222,7 +222,7 @@ class SimpleOSCServer(UDPServer):
             while len(binary):
                 sent = self.socket.sendto(binary, address)
                 binary = binary[sent:]
-        except socket.error, e:
+        except socket.error as e:
             if e[0] in (7, 65):     # 7 = 'no address associated with nodename',  65 = 'no route to host'
                 raise e
             else:

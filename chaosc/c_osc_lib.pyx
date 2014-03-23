@@ -25,10 +25,9 @@ import types, time
 from math import ceil, modf
 from struct import pack, unpack
 from copy import deepcopy
-from itertools import izip
 
 __all__ = ["OSCError", "OSCBundleFound", "OSCMessage", "OSCBundle", "decode_osc",
-    "proxy_decode_osc", "encode_string"]
+    "proxy_decode_osc", "encode_string",  "decode_string"]
 
 class OSCError(Exception):
     """Base Class for all OSC-related errors
@@ -41,9 +40,9 @@ class OSCBundleFound(Exception):
     """
     pass
 
-float_types = [types.FloatType]
+float_types = [float]
 
-int_types = [types.IntType]
+int_types = [int]
 
 from calendar import timegm
 NTP_epoch = timegm((1900, 1, 1, 0, 0, 0)) # NTP time started in 1 Jan 1900
@@ -71,36 +70,36 @@ except ImportError:
     pass
 
 
-cpdef inline str get_type_tag(object argument):
+cpdef inline bytes get_type_tag(object argument):
     ta = type(argument)
     if ta in float_types:
-        return 'f'
+        return b'f'
     elif ta in int_types:
-        return 'i'
+        return b'i'
     else:
-        return 's'
+        return b's'
 
 
 
-cpdef inline str encode_string(str argument):
+cpdef inline bytes encode_string(bytes argument):
     return pack(">%ds" % int(ceil((len(argument)+1) / 4.0) * 4), argument)
 
 
-cpdef inline str encode_blob(str argument):
+cpdef inline bytes encode_blob(bytes argument):
     """Convert a string into an OSC Blob.
     An OSC-Blob is a binary encoded block of data, prepended by a 'size' (int32).
     The size is always a mutiple of 4 bytes.
     The blob ends with 0 to 3 zero-bytes ('\x00')
     """
 
-    if isinstance(argument, basestring):
+    if isinstance(argument, bytes):
         length = ceil((len(argument)) / 4.0) * 4
         return pack(">i%ds" % length, length, argument)
     else:
-        return ""
+        return b""
 
 
-cpdef inline str encode_timetag(float timestamp):
+cpdef inline bytes encode_timetag(float timestamp):
     """Convert a time in floating seconds to its
     OSC binary representation
     """
@@ -115,15 +114,15 @@ cpdef inline str encode_timetag(float timestamp):
         return pack('>LL', 0L, 1L)
 
 
-cpdef inline tuple decode_string(str data, int start, int end):
+cpdef inline tuple decode_string(bytes data, int start, int end):
     """Reads the next (null-terminated) block of data
     """
-    end = data.find('\0', start)
+    end = bytearray(data).find(b'\0', start)
     nextData = int(ceil(0.25 * (end+1)) * 4)
     return data[start:end], nextData
 
 
-cpdef inline tuple decode_blob(str data, int start, int end):
+cpdef inline tuple decode_blob(bytes data, int start, int end):
     """Reads the next (numbered) block of data
     """
 
@@ -137,7 +136,7 @@ cpdef inline tuple decode_blob(str data, int start, int end):
     return data[blob_start:nextData], nextData
 
 
-cpdef inline tuple decode_int(str data, int start, int end):
+cpdef inline tuple decode_int(bytes data, int start, int end):
     """Tries to interpret the next 4 bytes of the data
     as a 32-bit integer. """
 
@@ -148,7 +147,7 @@ cpdef inline tuple decode_int(str data, int start, int end):
     return unpack(">i", data[start:end])[0], end
 
 
-cpdef inline tuple decode_long(str data, int start, int end):
+cpdef inline tuple decode_long(bytes data, int start, int end):
     """Tries to interpret the next 8 bytes of the data
     as a 64-bit signed integer.
         """
@@ -163,7 +162,7 @@ cpdef inline tuple decode_long(str data, int start, int end):
     return big, end
 
 
-cpdef inline tuple decode_timetag(str data, int start, int end):
+cpdef inline tuple decode_timetag(bytes data, int start, int end):
     """Tries to interpret the next 8 bytes of the data
     as a TimeTag.
     """
@@ -179,7 +178,7 @@ cpdef inline tuple decode_timetag(str data, int start, int end):
         return int(NTP_epoch + high) + float(low / NTP_units_per_second), end
 
 
-cpdef inline tuple decode_float(str data, int start, int end):
+cpdef inline tuple decode_float(bytes data, int start, int end):
     """Tries to interpret the next 4 bytes of the data
     as a 32-bit float.
     """
@@ -191,7 +190,7 @@ cpdef inline tuple decode_float(str data, int start, int end):
     return unpack(">f", data[start:end])[0], end
 
 
-cpdef inline tuple decode_double(str data, int start, int end):
+cpdef inline tuple decode_double(bytes data, int start, int end):
     """Tries to interpret the next 8 bytes of the data
     as a 64-bit float.
     """
@@ -203,7 +202,7 @@ cpdef inline tuple decode_double(str data, int start, int end):
     return unpack(">d", data[start:end])[0], end
 
 
-cpdef tuple decode_osc(str data, int start, int end):
+cpdef tuple decode_osc(bytes data, int start, int end):
     """Converts a binary OSC message to a Python list.
     """
     #table = _table
@@ -217,11 +216,11 @@ cpdef tuple decode_osc(str data, int start, int end):
     typetags = None
     rest = start
     address, rest = decode_string(data, rest, end)
-    if address.startswith(","):
+    if address.startswith(b","):
         typetags = address
-        address = ""
+        address = b""
 
-    if address == "#bundle":
+    if address == b"#bundle":
         typetags, rest = decode_timetag(data, rest, end)
         while rest - end:
             length, rest = decode_int(data, rest, end)
@@ -232,25 +231,27 @@ cpdef tuple decode_osc(str data, int start, int end):
         if typetags is None:
             typetags, rest = decode_string(data, rest, end)
 
-        if not typetags.startswith(","):
+        if not typetags.startswith(b","):
             raise OSCError("OSCMessage's typetag-string lacks the magic ','")
 
-        typetags = list(typetags[1:])
         len_typetags = len(typetags)
+
+        typetags = [typetags[i:i+1] for i in range(1,  len_typetags)]
+        len_typetags -= 1
 
         for i in range(len_typetags):
             typetag = typetags[i]
-            if typetag == "i":
+            if typetag == b"i":
                 argument, rest = decode_int(data, rest, end)
-            elif typetag == "s":
+            elif typetag == b"s":
                 argument, rest = decode_string(data, rest, end)
-            elif typetag == "f":
+            elif typetag == b"f":
                 argument, rest = decode_float(data, rest, end)
-            elif typetag == "b":
+            elif typetag == b"b":
                 argument, rest = decode_blob(data, rest, end)
-            elif typetag == "d":
+            elif typetag == b"d":
                 argument, rest = decode_double(data, rest, end)
-            elif typetag == "t":
+            elif typetag == b"t":
                 argument, rest = decode_timetag(data, rest, end)
             else:
                 raise OSCError("unknown typetag %r" % typetag)
@@ -259,7 +260,7 @@ cpdef tuple decode_osc(str data, int start, int end):
     return address, typetags, args
 
 
-cpdef tuple proxy_decode_osc(str data, int start, int end):
+cpdef tuple proxy_decode_osc(bytes data, int start, int end):
     """Converts a binary OSC message to a Python list.
     """
     #table = _table
@@ -273,7 +274,7 @@ cpdef tuple proxy_decode_osc(str data, int start, int end):
     typetags = None
     rest = start
     address, rest = decode_string(data, rest, end)
-    if address.startswith(","):
+    if address.startswith(b","):
         typetags = address
         address = ""
 
@@ -283,25 +284,28 @@ cpdef tuple proxy_decode_osc(str data, int start, int end):
         if typetags is None:
             typetags, rest = decode_string(data, rest, end)
 
-        if not typetags.startswith(","):
+        if not typetags.startswith(b","):
             raise OSCError("OSCMessage's typetag-string lacks the magic ','")
 
-        typetags = list(typetags[1:])
+
         len_typetags = len(typetags)
+
+        typetags = [typetags[i:i+1] for i in range(1,  len_typetags)]
+        len_typetags -= 1
 
         for i in range(len_typetags):
             typetag = typetags[i]
-            if typetag == "i":
+            if typetag == b"i":
                 argument, rest = decode_int(data, rest, end)
-            elif typetag == "s":
+            elif typetag == b"s":
                 argument, rest = decode_string(data, rest, end)
-            elif typetag == "f":
+            elif typetag == b"f":
                 argument, rest = decode_float(data, rest, end)
-            elif typetag == "b":
+            elif typetag == b"b":
                 argument, rest = decode_blob(data, rest, end)
-            elif typetag == "d":
+            elif typetag == b"d":
                 argument, rest = decode_double(data, rest, end)
-            elif typetag == "t":
+            elif typetag == b"t":
                 argument, rest = decode_timetag(data, rest, end)
             else:
                 raise OSCError("unknown typetag %r" % typetag)
@@ -351,7 +355,7 @@ cdef class OSCMessage(object):
     Additional methods exist for retrieving typetags or manipulating items as (typetag, value) tuples.
     """
 
-    cdef public str address
+    cdef public bytes address
     cdef public list typetags
     cdef public list args
 
@@ -428,11 +432,6 @@ cdef class OSCMessage(object):
         self.args.__delitem__(i)
         self.typetags.__delitem__(i)
 
-    def __delslice__(self, i, j):
-        """Removes the indicated slice
-        """
-        self.args.__delslice__(i, j)
-        self.typetags.__delslice__(i, j)
 
     def __setitem__(self, index, arguments):
         """Set indicatated argument (or slice) to a new value.
@@ -474,7 +473,7 @@ cdef class OSCMessage(object):
         self.typetags.append(get_type_tag(argument))
         self.args.append(argument)
 
-    def appendTypedArg(self, argument, str typehint):
+    def appendTypedArg(self, argument, bytes typehint):
         """Appends data to the message, updating the typetags based on
         the argument's type. If the argument is a blob (counted
         string) pass in 'b' as typehint.
@@ -564,38 +563,36 @@ cdef class OSCMessage(object):
         except IndexError:
             raise ValueError("argument not found")
 
-    cpdef str encode_osc(self):
+    cpdef bytes encode_osc(self):
         """Returns the binary representation of the message
         """
 
-        cdef list tmp
+        cdef list data
         cdef int len_typetags
         cdef int i
 
-        tmp = []
+        data = [encode_string(self.address), encode_string(b"," + b"".join(self.typetags))]
         len_typetags = len(self.typetags)
+
         for i in range(len_typetags):
             typetag = self.typetags[i]
             argument = self.args[i]
-            if typetag == "s":
-                tmp.append(encode_string(argument))
-            elif typetag == 'i':
-                tmp.append(pack(">i", argument))
-            elif typetag == 'f':
-                tmp.append(pack(">f", argument))
-            elif typetag == 'b':
-                tmp.append(encode_blob(argument))
-            elif typetag == 'd':
-                tmp.append(pack(">d", argument))
-            elif typetag == 't':
-                tmp.append(encode_timetag(argument))
+            if typetag == b's':
+                data.append(encode_string(argument))
+            elif typetag == b'i':
+                data.append(pack(">i", argument))
+            elif typetag == b'f':
+                data.append(pack(">f", argument))
+            elif typetag == b'b':
+                data.append(encode_blob(argument))
+            elif typetag == b'd':
+                data.append(pack(">d", argument))
+            elif typetag == b't':
+                data.append(encode_timetag(argument))
             else:
                 raise TypeError("unknown typetag %r" % typetag)
 
-        return "%s%s%s" % (
-            encode_string(self.address),
-            encode_string(",%s" % "".join(self.typetags)),
-            "".join(tmp))
+        return b"".join(data)
 
 
 
@@ -656,12 +653,16 @@ cdef class OSCBundle(object):
     def encode_osc(self):
         """Returns the binary representation of the message
         """
+        cdef list tmp
+        cdef bytes blob
 
-        return "%s%s%s" % (
-            encode_string("#bundle"),
+        blob = b"".join([encode_blob(argument.encode_osc())
+                for argument in self.args])
+
+        tmp = [encode_string(b"#bundle"),
             encode_timetag(self.timetag),
-            "".join([encode_blob(argument.encode_osc())
-                for argument in self.args]))
+            blob]
+        return  b"".join(tmp)
 
     def __richcmp__(self, other, cmd):
         if cmd == 2:

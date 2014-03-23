@@ -13,13 +13,10 @@ ext_modules = [
     Extension("chaosc.c_osc_lib", ["chaosc/c_osc_lib.pyx"])
 ]
 
-if sys.version_info >= (3,):
-    extras['use_2to3'] = True
-
 
 setup(
     name='chaosc',
-    version=get_git_version(),
+    version=str(get_git_version()),
     packages=find_packages(exclude=["scripts",]),
 
     include_package_data = True,

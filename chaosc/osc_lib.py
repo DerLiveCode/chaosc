@@ -50,21 +50,21 @@ ________________________
 #
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
-# 
+#
 # Copyright (C) 2012-2013 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 import types, time
 
 from math import ceil, modf
 from struct import pack, unpack
 from copy import deepcopy
-from itertools import izip
+
 
 
 __all__ = ["OSCError", "OSCBundleFound", "OSCMessage", "OSCBundle",
-    "proxy_decode_osc", "encode_string", "decode_osc"]
+    "proxy_decode_osc", "encode_string", "decode_osc", "decode_string"]
 
 class OSCError(Exception):
     """Base Class for all OSC-related errors
@@ -78,9 +78,9 @@ class OSCBundleFound(Exception):
     pass
 
 
-float_types = [types.FloatType]
+float_types = [float]
 
-IntTypes = [types.IntType]
+IntTypes = [int]
 
 from calendar import timegm
 NTP_epoch = timegm((1900, 1, 1, 0, 0, 0)) # NTP time started in 1 Jan 1900
@@ -120,11 +120,11 @@ def get_type_tag(argument):
 
     ta = type(argument)
     if ta in float_types:
-        return 'f'
+        return b'f'
     elif ta in IntTypes:
-        return 'i'
+        return b'i'
     else:
-        return 's'
+        return b's'
 
 
 def encode_string(argument):
@@ -153,11 +153,11 @@ def encode_blob(argument):
     :rtype: str
     """
 
-    if isinstance(argument, basestring):
+    if isinstance(argument, bytes):
         length = ceil((len(argument)) / 4.0) * 4
         return pack(">i%ds" % length, length, argument)
     else:
-        return ""
+        return b""
 
 
 def encode_timetag(timestamp):
@@ -173,9 +173,9 @@ def encode_timetag(timestamp):
     if timestamp > 0:
         fract, secs = modf(timestamp)
         secs = secs - NTP_epoch
-        return pack('>LL', long(secs), long(fract * NTP_units_per_second))
+        return pack('>LL', int(secs), int(fract * NTP_units_per_second))
     else:
-        return pack('>LL', 0L, 1L)
+        return pack('>LL', 0, 1)
 
 
 
@@ -195,7 +195,7 @@ def decode_string(data, start, end):
     :returns: the string and the start position of remaining data
     :rtype: str, int
     """
-    end = data.find("\0", start)
+    end = bytearray(data).find(b"\0", start)
     nextData = int(ceil(0.25 * (end+1)) * 4)
     return data[start:end], nextData
 
@@ -364,11 +364,11 @@ def decode_osc(data, start, end):
     typetags = None
     rest = start
     address, rest = decode_string(data, rest, end)
-    if address.startswith(","):
+    if address[0:1] == b",":
         typetags = address
         address = ""
 
-    if address == "#bundle":
+    if address == b"#bundle":
         typetags, rest = decode_timetag(data, rest, end)
         while rest - end:
             length, rest = decode_int(data, rest, end)
@@ -379,25 +379,33 @@ def decode_osc(data, start, end):
         if typetags is None:
             typetags, rest = decode_string(data, rest, end)
 
-        if not typetags.startswith(","):
+        print(typetags)
+        if typetags[0:1] != b",":
             raise OSCError("OSCMessage's typetag-string lacks the magic ','")
 
-        typetags = list(typetags[1:])
         len_typetags = len(typetags)
+
+        typetags = [typetags[i:i+1] for i in range(1,  len_typetags)]
+        print("typetags", typetags)
+        len_typetags -= 1
+        print("len_typetags", len_typetags)
 
         for i in range(len_typetags):
             typetag = typetags[i]
-            if typetag == "i":
+            print("typetag", typetag)
+            if typetag == b"i":
+                print("before i", data, rest, end)
                 argument, rest = decode_int(data, rest, end)
-            elif typetag == "s":
+                print("argument, rest", argument, rest)
+            elif typetag == b"s":
                 argument, rest = decode_string(data, rest, end)
-            elif typetag == "f":
+            elif typetag == b"f":
                 argument, rest = decode_float(data, rest, end)
-            elif typetag == "b":
+            elif typetag == b"b":
                 argument, rest = decode_blob(data, rest, end)
-            elif typetag == "d":
+            elif typetag == b"d":
                 argument, rest = decode_double(data, rest, end)
-            elif typetag == "t":
+            elif typetag == b"t":
                 argument, rest = decode_timetag(data, rest, end)
             else:
                 raise OSCError("unknown typetag %r" % typetag)
@@ -498,7 +506,7 @@ class OSCMessage(object):
     Best practice for performance is to create your OSCMessage and store the
     binary representation in a variable and reuse it whenever possible. We're
     also played with a simple representation cache, but decided against it.
-    It's really simple to implement one with annotations, subclassing or simply 
+    It's really simple to implement one with annotations, subclassing or simply
     fork and hack straight into this module.
 
     .. py:attribute:: address
@@ -716,7 +724,7 @@ class OSCMessage(object):
 
         :rtype: list
         """
-        return zip(self.typetags, self.args)
+        return list(zip(self.typetags, self.args))
 
     def count(self, val):
         """Returns the count a given value occurs in the OSCMessage's arguments
@@ -851,27 +859,27 @@ class OSCMessage(object):
         :rtype: str
         """
 
-        tmp = list()
-        for typetag, argument in izip(self.typetags, self.args):
-            if typetag == "s":
+        tmp = [encode_string(self.address), encode_string(b"," + b"".join(self.typetags))]
+        for typetag, argument in zip(self.typetags, self.args):
+            if typetag == b"s":
                 tmp.append(encode_string(argument))
-            elif typetag == 'i':
+            elif typetag == b'i':
                 tmp.append(pack(">i", argument))
-            elif typetag == 'f':
+            elif typetag == b'f':
                 tmp.append(pack(">f", argument))
-            elif typetag == 'b':
+            elif typetag == b'b':
                 tmp.append(encode_blob(argument))
-            elif typetag == 'd':
+            elif typetag == b'd':
                 tmp.append(pack(">d", argument))
-            elif typetag == 't':
+            elif typetag == b't':
                 tmp.append(encode_timetag(argument))
             else:
                 raise TypeError("unknown typetag %r" % typetag)
 
-        return "%s%s%s" % (
-            encode_string(self.address),
-            encode_string(",%s" % "".join(self.typetags)),
-            "".join(tmp))
+        print("encode_osc tmp:")
+        for i in tmp:
+            print("    ", i)
+        return b"".join(tmp)
 
 
 
@@ -924,7 +932,7 @@ class OSCBundle(object):
         """
 
         fract, secs = modf(self.timetag)
-        return "%s%s" % (time.ctime(secs)[11:19], ("%.3f" % fract)[1:])
+        return b"".join([time.ctime(secs)[11:19], bytes("%.3f" % fract)[1:], "ascii"])
 
     def append(self, osc_message):
         """Appends an OSCMessage
@@ -944,12 +952,19 @@ class OSCBundle(object):
         :returns: the binary representation
         :rtype: str
         """
+        message_binaries = [argument.encode_osc()
+            for argument in self.args]
+        print("message_binaries", message_binaries)
 
-        return "%s%s%s" % (
-            encode_string("#bundle"),
+        blobs = [encode_blob(binary) for binary in message_binaries]
+        print("blobs", blobs)
+        blob_binary = b"".join(blobs)
+        tmp = [
+            encode_string(b"#bundle"),
             encode_timetag(self.timetag),
-            "".join([encode_blob(argument.encode_osc())
-                for argument in self.args]))
+            blob_binary]
+        print("bundle tmp", tmp)
+        return b"".join(tmp)
 
     def __eq__(self, other):
         """Return True if two OSCBundles have the same timetag & content

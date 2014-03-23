@@ -30,7 +30,7 @@ transcoding.py file.
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-from __future__ import absolute_import
+
 
 
 import atexit
@@ -51,7 +51,7 @@ class ChaoscDump(SimpleOSCServer):
     def __init__(self, args):
         """ctor for osc message dumper from chaosc"""
 
-        print "%s: starting up chaosc_dump-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
+        print("%s: starting up chaosc_dump-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__))
         SimpleOSCServer.__init__(self, args)
 
 
@@ -75,9 +75,9 @@ class ChaoscDump(SimpleOSCServer):
         :type client_address: tuple
         """
 
-        print "%s: osc_address=%r, typetags=%r, arguments=%r" % (
+        print("%s: osc_address=%r, typetags=%r, arguments=%r" % (
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            osc_address, typetags, args)
+            osc_address, typetags, args))
 
 
 
