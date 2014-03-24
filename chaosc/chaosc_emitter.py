@@ -45,61 +45,61 @@ class Runner(object):
         host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port)
         print(host, port)
         sock.connect((host, port))
-        pi = math.pi
-        count1 = random.random() * math.pi * 2
-        #count2 = random.random() * math.pi * 2
-        count2 = 0
-        count3 = 0
-        step1 = math.pi * 2 // 300.
-        #step2 = math.pi * 2 / 300.
-        step3 = math.pi * 2 // 400.
+        #pi = math.pi
+        #count1 = random.random() * math.pi * 2
+        ##count2 = random.random() * math.pi * 2
+        #count2 = 0
+        #count3 = 0
+        #step1 = math.pi * 2 // 300.
+        ##step2 = math.pi * 2 / 300.
+        #step3 = math.pi * 2 // 400.
         foo = 0
 
         while self.running:
             #reply = OSCBundle()
-            m1 = OSCMessage(b"/uwe/ekg")
-            m1.appendTypedArg(int(254 * ((math.e ** (2 * -count1)) * math.cos(count1 * 10 * math.pi) + 1) // 2), b"i")
+            #m1 = OSCMessage(b"/uwe/ekg")
+            #m1.appendTypedArg(int(254 * ((math.e ** (2 * -count1)) * math.cos(count1 * 10 * math.pi) + 1) // 2), b"i")
 
-            m2 = OSCMessage(b"/merle/ekg")
-            m2.appendTypedArg(254 - count2, b"i")
+            #m2 = OSCMessage(b"/merle/ekg")
+            #m2.appendTypedArg(254 - count2, b"i")
 
-            m3 = OSCMessage(b"/bjoern/ekg")
-            m3.appendTypedArg(int(254 * (math.cos(count3) + 1) // 2), b"i")
+            #m3 = OSCMessage(b"/bjoern/ekg")
+            #m3.appendTypedArg(int(254 * (math.cos(count3) + 1) // 2), b"i")
 
-            sent = sock.sendall(m1.encode_osc())
-            sent = sock.sendall(m2.encode_osc())
-            sent = sock.sendall(m3.encode_osc())
+            #sent = sock.sendall(m1.encode_osc())
+            #sent = sock.sendall(m2.encode_osc())
+            #sent = sock.sendall(m3.encode_osc())
 
-            count1 = (count1 + step1) % (math.pi * 2)
-            count2 = (count2 + 1) % 254
-            count3 = (count3 + step3) % (math.pi * 2)
+            #count1 = (count1 + step1) % (math.pi * 2)
+            #count2 = (count2 + 1) % 254
+            #count3 = (count3 + step3) % (math.pi * 2)
 
             foo +=1
-            if foo == 1000:
+            if foo == 10:
                 m1 = OSCMessage(b"/plot/uwe")
                 m1.appendTypedArg(0, b"i")
                 m1.appendTypedArg(1, b"i")
                 m1.appendTypedArg(1, b"i")
                 binary = m1.encode_osc()
-                sent = sock.sendall(binary)
-            elif foo == 2000:
+                sent = sock.sendto(binary, (host, port))
+            elif foo == 20:
                 m1 = OSCMessage(b"/plot/merle")
                 m1.appendTypedArg(0, b"i")
                 binary = m1.encode_osc()
-                sent = sock.sendall(binary)
-            elif foo == 3000:
+                sent = sock.sendto(binary, (host, port))
+            elif foo == 30:
                 m1 = OSCMessage(b"/plot/uwe")
                 m1.appendTypedArg(1, b"i")
                 binary = m1.encode_osc()
-                sent = sock.sendall(binary)
+                sent = sock.sendto(binary, (host, port))
 
                 m1 = OSCMessage(b"/plot/merle")
                 m1.appendTypedArg(1, b"i")
                 binary = m1.encode_osc()
-                sent = sock.sendall(binary)
+                sent = sock.sendto(binary, (host, port))
                 foo = 0
 
-            time.sleep(0.005)
+            time.sleep(.5)
 
 
 def main():

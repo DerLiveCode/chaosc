@@ -77,7 +77,7 @@ class Chaosc(UDPServer):
         self.args = args
         self.callbacks = {}
 
-        self.authenticate = args.authenticate
+        self.authenticate = bytes(args.authenticate, "ascii")
 
         self.socket.setsockopt(socket.SOL_SOCKET,
             socket.SO_SNDBUF, self.max_packet_size)
@@ -90,10 +90,10 @@ class Chaosc(UDPServer):
         self.target_stats = defaultdict(statlist)
         self.route_stats = defaultdict(statlist)
 
-        self.add_handler('/subscribe', self.__subscription_handler)
-        self.add_handler('/unsubscribe', self.__unsubscription_handler)
-        self.add_handler('/stats', self.__stats_handler)
-        self.add_handler('/save', self.__save_subscriptions_handler)
+        self.add_handler(b'/subscribe', self.__subscription_handler)
+        self.add_handler(b'/unsubscribe', self.__unsubscription_handler)
+        self.add_handler(b'/stats', self.__stats_handler)
+        self.add_handler(b'/save', self.__save_subscriptions_handler)
 
         if args.subscription_file:
             self.__load_subscriptions()
@@ -122,7 +122,7 @@ class Chaosc(UDPServer):
         (str addr, tuple typetags, tuple args, tuple client_address),
         as returned by decode_osc.
         """
-        for chk in '*?,[]{}# ':
+        for chk in b'*?,[]{}# ':
             if chk in address:
                 raise OSCError("OSC-address string may not contain any" \
                     "characters in '*?,[]{}# '")
@@ -131,8 +131,8 @@ class Chaosc(UDPServer):
             raise OSCError("Message callback '%s' is not callable" %
                 repr(callback))
 
-        if address != 'default':
-            address = '/' + address.strip('/')
+        if address != b'default':
+            address = b'/' + address.strip(b'/')
 
         self.callbacks[address] = callback
 
@@ -352,29 +352,29 @@ class Chaosc(UDPServer):
 
         reply = OSCBundle()
         for (resolved_host, resolved_port), (label, host, port) in self.targets.items():
-            tmp = OSCMessage("/st")
-            tmp.appendTypedArg(host, "s")
-            tmp.appendTypedArg(port, "i")
-            tmp.appendTypedArg(label, "s")
+            tmp = OSCMessage(b"/st")
+            tmp.appendTypedArg(bytes(host, "ascii"), b"s")
+            tmp.appendTypedArg(port, b"i")
+            tmp.appendTypedArg(bytes(label, "ascii"), b"s")
             stat = self.target_stats[host]
-            tmp.appendTypedArg(stat[0], "i")
-            tmp.appendTypedArg(stat[1], "d")
+            tmp.appendTypedArg(stat[0], b"i")
+            tmp.appendTypedArg(stat[1], b"d")
             reply.append(tmp)
         for source, stat in self.source_stats.items():
-            tmp = OSCMessage("/ss")
-            tmp.appendTypedArg(source, "s")
-            tmp.appendTypedArg(stat[0], "i")
-            tmp.appendTypedArg(stat[1], "d")
+            tmp = OSCMessage(b"/ss")
+            tmp.appendTypedArg(bytes(source, "ascii"), b"s")
+            tmp.appendTypedArg(stat[0], b"i")
+            tmp.appendTypedArg(stat[1], b"d")
             reply.append(tmp)
         for (source, target), stat in self.route_stats.items():
-            tmp = OSCMessage("/sr")
-            tmp.appendTypedArg(source, "s")
-            tmp.appendTypedArg(target, "s")
-            tmp.appendTypedArg(stat[0], "i")
-            tmp.appendTypedArg(stat[1], "d")
+            tmp = OSCMessage(b"/sr")
+            tmp.appendTypedArg(bytes(source, "ascii"), b"s")
+            tmp.appendTypedArg(bytes(target, "ascii"), b"s")
+            tmp.appendTypedArg(stat[0], b"i")
+            tmp.appendTypedArg(stat[1], b"d")
             reply.append(tmp)
 
-        size = OSCMessage("/ne")
+        size = OSCMessage(b"/ne")
         reply.append(size)
         self.socket.sendto(reply.encode_osc(), client_address)
 
@@ -394,11 +394,11 @@ class Chaosc(UDPServer):
         if (host, port) in self.targets:
             print("%s: subscription of '%s:%d (%s)' failed - already subscribed" % (
                 datetime.now().strftime("%x %X"), host, port, self.targets[(host, port)]))
-            message = OSCMessage("/Failed")
-            message.appendTypedArg("subscribe", "s")
-            message.appendTypedArg("already subscribed", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
+            message = OSCMessage(b"/Failed")
+            message.appendTypedArg(b"subscribe", b"s")
+            message.appendTypedArg(b"already subscribed", b"s")
+            message.appendTypedArg(host, b"s")
+            message.appendTypedArg(port, b"i")
             self.sendto(message, (client_host, client_port))
             return
 
@@ -408,10 +408,10 @@ class Chaosc(UDPServer):
                 datetime.now().strftime("%x %X"), host, port, label, client_address[0],
                 client_address[1]))
 
-            message = OSCMessage("/OK")
-            message.appendTypedArg("subscribe", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
+            message = OSCMessage(b"/OK")
+            message.appendTypedArg(b"subscribe", b"s")
+            message.appendTypedArg(host, b"s")
+            message.appendTypedArg(port, b"i")
             self.socket.sendto(message.encode_osc(), (client_host, client_port))
             print("sendto", client_host, client_port)
         else:
@@ -424,25 +424,26 @@ class Chaosc(UDPServer):
 
         client_host, client_port = resolve_host(client_address[0], client_address[1])
         resolved_host, resolved_port = resolve_host(host, port)
+        print("resolved_address", resolved_host, resolved_port)
 
         try:
-            label = self.targets.pop((resolved_host, resolved_port))
+            label = self.targets.pop((bytes(resolved_host, "ascii"), resolved_port))
         except KeyError as e:
             print("%s: '%s:%d' was not subscribed" % (datetime.now().strftime("%x %X"), host, port))
-            message = OSCMessage("/Failed")
-            message.appendTypedArg("unsubscribe", "s")
-            message.appendTypedArg("not subscribed", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
+            message = OSCMessage(b"/Failed")
+            message.appendTypedArg(b"unsubscribe", b"s")
+            message.appendTypedArg(b"not subscribed", b"s")
+            message.appendTypedArg(bytes(host, "ascii"), b"s")
+            message.appendTypedArg(port, b"i")
             self.sendto(message, (client_host, client_port))
         else:
             print("%s: unsubscription of '%s:%d (%s)' by '%s:%d'" % (
                 datetime.now().strftime("%x %X"), host, port, label, client_host,
                 client_port))
-            message = OSCMessage("/OK")
-            message.appendTypedArg("unsubscribe", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
+            message = OSCMessage(b"/OK")
+            message.appendTypedArg(b"unsubscribe", b"s")
+            message.appendTypedArg(host, b"s")
+            message.appendTypedArg(port, b"i")
             self.sendto(message, (client_host, client_port))
 
 
@@ -462,9 +463,9 @@ class Chaosc(UDPServer):
         except ValueError as e:
             print("%s: subscription by config failed of host '%s:%d' - %s" % (
                 datetime.now().strftime("%x %X"), host, port, e))
-            message = OSCMessage("/Failed")
-            message.appendTypedArg("subscribe", "s")
-            message.appendTypedArg("not authorized", "s")
+            message = OSCMessage(b"/Failed")
+            message.appendTypedArg(b"subscribe", b"s")
+            message.appendTypedArg(b"not authorized", b"s")
             message.appendTypedArg(host, "s")
             message.appendTypedArg(port, "i")
             self.sendto(message, client_address)

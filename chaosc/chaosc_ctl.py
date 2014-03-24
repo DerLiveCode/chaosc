@@ -41,33 +41,33 @@ class OSCCTLServer(SimpleOSCServer):
 
 
         if "unsubscribe" == args.subparser_name:
-            msg = OSCMessage("/unsubscribe")
-            msg.appendTypedArg(args.host, "s")
-            msg.appendTypedArg(args.port, "i")
-            msg.appendTypedArg(args.authenticate, "s")
+            msg = OSCMessage(b"/unsubscribe")
+            msg.appendTypedArg(bytes(args.host, "ascii"), b"s")
+            msg.appendTypedArg(args.port, b"i")
+            msg.appendTypedArg(bytes(args.authenticate, "ascii"), b"s")
             self.sendto(msg, self.chaosc_address)
             print("unsubscribe %r:%r from %r:%r" % (
                 args.host, args.port, args.chaosc_host, args.chaosc_port))
 
         elif "subscribe" == args.subparser_name:
-            msg = OSCMessage("/subscribe")
-            msg.appendTypedArg(args.host, "s")
-            msg.appendTypedArg(args.port, "i")
-            msg.appendTypedArg(args.authenticate, "s")
+            msg = OSCMessage(b"/subscribe")
+            msg.appendTypedArg(bytes(args.host, "ascii"), b"s")
+            msg.appendTypedArg(args.port, b"i")
+            msg.appendTypedArg(bytes(args.authenticate, "ascii"), b"s")
             if args.subscriber_label:
-                msg.appendTypedArg(args.subscriber_label, "s")
+                msg.appendTypedArg(bytes(args.subscriber_label, "ascii"), b"s")
             self.sendto(msg, self.chaosc_address)
             print("subscribe %r:%r to %r:%r" % (
                 args.host, args.port, args.chaosc_host, args.chaosc_port))
 
         elif "stats" == args.subparser_name:
-            msg = OSCMessage("/stats")
-            msg.appendTypedArg(args.own_host, "s")
-            msg.appendTypedArg(args.own_port, "i")
+            msg = OSCMessage(b"/stats")
+            msg.appendTypedArg(bytes(args.own_host, "ascii"), b"s")
+            msg.appendTypedArg(args.own_port, b"i")
             self.sendto(msg, self.chaosc_address)
         elif "save" == args.subparser_name:
-            msg = OSCMessage("/save")
-            msg.appendTypedArg(args.authenticate, "s")
+            msg = OSCMessage(b"/save")
+            msg.appendTypedArg(bytes(args.authenticate, "ascii"), b"s")
             self.sendto(msg, self.chaosc_address)
         elif "foo" == args.subparser_name:
             time.sleep(15)
@@ -76,10 +76,10 @@ class OSCCTLServer(SimpleOSCServer):
             sys.exit(1)
 
     def stats_handler(self, name, desc, messages, packet, client_address):
-        if name == "#bundle":
+        if name == b"#bundle":
             print("subscribed clients:")
             for osc_address, typetags, args in messages:
-                if osc_address == "/st":
+                if osc_address == b"/st":
                     print("    host=%r, port=%r, label=%r, received messages=%r" % (args[0], args[1], args[2], args[3]))
         else:
             print("chaosc returned status {} with args {}".format(name, messages))

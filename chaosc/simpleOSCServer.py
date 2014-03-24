@@ -27,7 +27,7 @@ import atexit
 
 from datetime import datetime
 from struct import pack
-from types import TupleType, IntType, StringTypes, FunctionType, MethodType
+
 from socketserver import UDPServer, DatagramRequestHandler, ThreadingUDPServer, ForkingUDPServer
 
 from chaosc import _version
@@ -112,12 +112,12 @@ class SimpleOSCServer(UDPServer):
         :type token: str
         """
         print("%s: subscribing to '%s:%d' with label %r" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1], self.args.subscriber_label))
-        msg = OSCMessage("/subscribe")
-        msg.appendTypedArg(self.own_address[0], "s")
-        msg.appendTypedArg(self.own_address[1], "i")
-        msg.appendTypedArg(self.args.authenticate, "s")
+        msg = OSCMessage(b"/subscribe")
+        msg.appendTypedArg(self.own_address[0], b"s")
+        msg.appendTypedArg(self.own_address[1], b"i")
+        msg.appendTypedArg(self.args.authenticate, b"s")
         if self.args.subscriber_label is not None:
-            msg.appendTypedArg(self.args.subscriber_label, "s")
+            msg.appendTypedArg(self.args.subscriber_label, b"s")
         self.sendto(msg, self.chaosc_address)
 
 
@@ -126,10 +126,10 @@ class SimpleOSCServer(UDPServer):
             return
 
         print("%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1]))
-        msg = OSCMessage("/unsubscribe")
-        msg.appendTypedArg(self.own_address[0], "s")
-        msg.appendTypedArg(self.own_address[1], "i")
-        msg.appendTypedArg(self.args.authenticate, "s")
+        msg = OSCMessage(b"/unsubscribe")
+        msg.appendTypedArg(self.own_address[0], b"s")
+        msg.appendTypedArg(self.own_address[1], b"i")
+        msg.appendTypedArg(self.args.authenticate, b"s")
         self.sendto(msg, self.chaosc_address)
 
 
@@ -141,7 +141,7 @@ class SimpleOSCServer(UDPServer):
         The callback-function will be called with the same arguments as the 'msgPrinter_handler' below
         """
 
-        if type(callback) not in (FunctionType, MethodType):
+        if not callable(callback):
             raise OSCError("Message callback '%s' is not callable" % repr(callback))
 
         if address != 'X':
