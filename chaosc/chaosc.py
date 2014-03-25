@@ -59,12 +59,9 @@ class Chaosc(UDPServer):
     also use a targets.config file for static subscriptions.
     """
 
-    max_packet_size = 16*2**20
-    address_family = socket.AF_INET6
-
     def __init__(self, args):
         """Instantiate an OSCServer."""
-        self.address_family = args.ipv4_only and socket.AF_INET or socket.AF_INET6
+        self.address_family = args.address_family
 
         self.args = args
         server_address = host, port = resolve_host(args.chaosc_host, args.chaosc_port, self.address_family)

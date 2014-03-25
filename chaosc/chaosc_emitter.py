@@ -41,8 +41,8 @@ class Runner(object):
         self.args = args
     def __call__(self):
 
-        sock = socket.socket(2, 2, 17)
-        host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port)
+        sock = socket.socket(self.args.address_family, 2, 17)
+        host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port, self.args.address_family)
         print host, port
         sock.connect((host, port))
         pi = math.pi

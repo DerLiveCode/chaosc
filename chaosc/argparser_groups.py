@@ -28,7 +28,7 @@ import sys
 import socket
 
 
-from chaosc.lib import fix_host
+from chaosc.lib import fix_host, select_family
 
 def create_arg_parser(progname):
     return argparse.ArgumentParser(prog=progname)
@@ -95,6 +95,8 @@ def add_filtering_group(arg_parser):
 
 def finalize_arg_parser(arg_parser):
     args = arg_parser.parse_args(sys.argv[1:])
+
+    select_family(args)
 
     try:
         args.own_host = fix_host(args.ipv4_only, args.own_host)

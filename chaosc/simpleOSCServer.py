@@ -74,16 +74,12 @@ class SimpleOSCServer(UDPServer):
     Subscribes to chaosc if you want.
     """
 
-    address_family = socket.AF_INET6
-    #address_family = socket.AF_INET
-
-
     def __init__(self, args):
         """Instantiate an OSCServer.
         server_address ((host, port) tuple): the local host & UDP-port
         the server listens on
         """
-        self.address_family = args.ipv4_only and socket.AF_INET or socket.AF_INET6
+        self.address_family = args.address_family
 
         self.args = args
         self.own_address = own_host, own_port = resolve_host(args.own_host, args.own_port, self.address_family)

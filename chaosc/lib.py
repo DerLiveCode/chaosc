@@ -33,6 +33,12 @@ def statlist():
     """
     return [0, 0]
 
+def select_family(args):
+    if args.ipv4_only:
+        args.address_family = socket.AF_INET
+    else:
+        args.address_family = socket.AF_INET6
+
 
 def resolve_host(host, port, family):
     print("family", family)
