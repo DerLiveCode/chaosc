@@ -41,17 +41,16 @@ class Runner(object):
         self.args = args
     def __call__(self):
 
-        sock = socket.socket(10, 2, 17)
-        host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port)
-        print(host, port)
+        sock = socket.socket(self.args.address_family, 2, 17)
+        host, port = resolve_host(self.args.chaosc_host, self.args.chaosc_port, self.args.address_family)
         sock.connect((host, port))
         #pi = math.pi
         #count1 = random.random() * math.pi * 2
-        ##count2 = random.random() * math.pi * 2
+        #count2 = random.random() * math.pi * 2
         #count2 = 0
         #count3 = 0
         #step1 = math.pi * 2 // 300.
-        ##step2 = math.pi * 2 / 300.
+        #step2 = math.pi * 2 / 300.
         #step3 = math.pi * 2 // 400.
         foo = 0
 
