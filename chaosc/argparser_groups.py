@@ -28,6 +28,8 @@ import sys
 import socket
 
 
+from chaosc.lib import fix_host
+
 def create_arg_parser(progname):
     return argparse.ArgumentParser(prog=progname)
 
@@ -39,6 +41,8 @@ def add_main_group(arg_parser):
         help='my host, defaults to "::"')
     own_group.add_argument('-p', "--own_port", default=8000,
         type=int, help='my port, defaults to 8000')
+    own_group.add_argument('-4', '--ipv4_only', action="store_true",
+        help='select ipv4 sockets, defaults tp ipv6"')
     return own_group
 
 
@@ -90,7 +94,24 @@ def add_filtering_group(arg_parser):
 
 
 def finalize_arg_parser(arg_parser):
-    return arg_parser.parse_args(sys.argv[1:])
+    args = arg_parser.parse_args(sys.argv[1:])
+
+    try:
+        args.own_host = fix_host(args.ipv4_only, args.own_host)
+    except AttributeError:
+        pass
+
+    try:
+        args.chaosc_host = fix_host(args.ipv4_only, args.chaosc_host)
+    except AttributeError:
+        pass
+
+    try:
+        args.http_host = fix_host(args.ipv4_only, args.http_host)
+    except AttributeError:
+        pass
+
+    return args
 
 
 if __name__ == '__main__':

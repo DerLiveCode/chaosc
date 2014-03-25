@@ -34,5 +34,20 @@ def statlist():
     return [0, 0]
 
 
-def resolve_host(host, port):
-    return socket.getaddrinfo(host, port, socket.AF_INET6, socket.SOCK_DGRAM, 0, socket.AI_V4MAPPED | socket.AI_ALL | socket.AI_CANONNAME | socket.AI_ADDRCONFIG)[-1][4][:2]
+def resolve_host(host, port, family):
+    print("family", family)
+    flags = socket.AI_ALL | socket.AI_CANONNAME | socket.AI_ADDRCONFIG
+    if family == socket.AF_INET6:
+        flags |= socket.AI_V4MAPPED
+    return socket.getaddrinfo(host, port, family, socket.SOCK_DGRAM, 0, flags)[-1][4][:2]
+
+
+
+def fix_host(ipv4_only, name):
+    if ipv4_only:
+        if name.find(":") != -1:
+            if name == "::":
+                name = "0.0.0.0"
+            elif name == "::1":
+                name = "127.0.0.1"
+    return name
