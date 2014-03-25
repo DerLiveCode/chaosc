@@ -93,8 +93,9 @@ class OSCCTLServer(SimpleOSCServer):
 
         """
         print(sys.exc_info()[0])
+        print(sys.exc_info())
         if sys.exc_info()[0] == SystemExit:
-            sys.exit(0)
+            os._exit(0)
 
 
 

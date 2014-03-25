@@ -64,8 +64,10 @@ class Chaosc(UDPServer):
 
     def __init__(self, args):
         """Instantiate an OSCServer."""
+        self.address_family = args.ipv4_only and socket.AF_INET or socket.AF_INET6
 
-        server_address = host, port = resolve_host(args.chaosc_host, args.chaosc_port)
+        self.args = args
+        server_address = host, port = resolve_host(args.chaosc_host, args.chaosc_port, self.address_family)
 
         now = datetime.now().strftime("%x %X")
         print("%s: starting up chaosc-%s..." % (
@@ -74,7 +76,7 @@ class Chaosc(UDPServer):
         print("%s: binding to %s:%r" % (
             now, self.socket.getsockname()[0], server_address[1]))
 
-        self.args = args
+
         self.callbacks = {}
 
         self.authenticate = bytes(args.authenticate, "ascii")
@@ -99,11 +101,14 @@ class Chaosc(UDPServer):
             self.__load_subscriptions()
 
 
+
+
     def server_bind(self):
         # Override this method to be sure v6only is false: we want to
         # listen to both IPv4 and IPv6!
         #print "v6 only", self.socket.getsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY)
-        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
+        if not self.args.ipv4_only:
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, False)
         UDPServer.server_bind(self)
 
 
@@ -388,8 +393,8 @@ class Chaosc(UDPServer):
         if host == "":
             host = client_address[0]
 
-        resolved_host, resolved_port = resolve_host(host, port)
-        client_host, client_port = resolve_host(client_address[0], client_address[1])
+        resolved_host, resolved_port = resolve_host(host, port, self.address_family)
+        client_host, client_port = resolve_host(client_address[0], client_address[1], self.address_family)
 
         if (host, port) in self.targets:
             print("%s: subscription of '%s:%d (%s)' failed - already subscribed" % (
@@ -399,7 +404,7 @@ class Chaosc(UDPServer):
             message.appendTypedArg(b"already subscribed", b"s")
             message.appendTypedArg(host, b"s")
             message.appendTypedArg(port, b"i")
-            self.sendto(message, (client_host, client_port))
+            self.socket.sendto(message.encode_osc(), (client_host, client_port))
             return
 
         self.targets[(host, port)] = (label is not None and label or "", host, port)
@@ -423,7 +428,7 @@ class Chaosc(UDPServer):
     def __unsubscribe(self, host, port, client_address=None):
 
         client_host, client_port = resolve_host(client_address[0], client_address[1])
-        resolved_host, resolved_port = resolve_host(host, port)
+        resolved_host, resolved_port = resolve_host(host, port, self.address_family)
         print("resolved_address", resolved_host, resolved_port)
 
         try:
@@ -456,6 +461,8 @@ class Chaosc(UDPServer):
 
         only subscription requests with valid host and authenticate will be granted.
         """
+
+        print()
 
         host, port = args[:2]
         try:
@@ -523,6 +530,8 @@ def main():
         help='token to authorize interaction with chaosc, default="sekret"')
     main_group.add_argument('-c', '--config_dir', type=str, default="~/.chaosc",
         help='config directory used as place to read and store e.g subscription files if not userwise specified, default="~./chaosc"')
+    main_group.add_argument('-4', '--ipv4_only', action="store_true",
+        help='select ipv4 sockets, defaults tp ipv6"')
 
     args = finalize_arg_parser(arg_parser)
 

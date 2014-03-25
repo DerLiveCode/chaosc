@@ -37,7 +37,7 @@ try:
 except ImportError:
     from chaosc.osc_lib import *
 
-from chaosc.lib import resolve_host
+from chaosc.lib import resolve_host, fix_host
 
 __all__ = ["SimpleOSCServer",]
 
@@ -83,10 +83,11 @@ class SimpleOSCServer(UDPServer):
         server_address ((host, port) tuple): the local host & UDP-port
         the server listens on
         """
+        self.address_family = args.ipv4_only and socket.AF_INET or socket.AF_INET6
 
         self.args = args
-        self.own_address = own_host, own_port = resolve_host(args.own_host, args.own_port)
-        self.chaosc_address = chaosc_host, chaosc_port = resolve_host(args.chaosc_host, args.chaosc_port)
+        self.own_address = own_host, own_port = resolve_host(args.own_host, args.own_port, self.address_family)
+        self.chaosc_address = chaosc_host, chaosc_port = resolve_host(args.chaosc_host, args.chaosc_port, self.address_family)
 
         print("%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), own_host, own_port))
         UDPServer.__init__(self, self.own_address, OSCRequestHandler)
