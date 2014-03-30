@@ -387,33 +387,33 @@ class Chaosc(UDPServer):
 
 
     def __subscribe(self, host, port, label=None, client_address=None):
-        if host == "":
-            host = client_address[0]
 
         resolved_host, resolved_port = resolve_host(host, port, self.address_family)
-        client_host, client_port = resolve_host(client_address[0], client_address[1], self.address_family)
+        if client_address is not None:
+            client_host, client_port = resolve_host(client_address[0], client_address[1], self.address_family)
 
         if (host, port) in self.targets:
             print "%s: subscription of '%s:%d (%s)' failed - already subscribed" % (
                 datetime.now().strftime("%x %X"), host, port, self.targets[(host, port)])
-            message = OSCMessage("/Failed")
-            message.appendTypedArg("subscribe", "s")
-            message.appendTypedArg("already subscribed", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
-            self.socket.sendto(message.encode_osc(), (client_host, client_port))
+            if client_address is not None:
+                message = OSCMessage("/Failed")
+                message.appendTypedArg("subscribe", "s")
+                message.appendTypedArg("already subscribed", "s")
+                message.appendTypedArg(host, "s")
+                message.appendTypedArg(port, "i")
+                self.socket.sendto(message.encode_osc(), (client_host, client_port))
             return
 
-        self.targets[(host, port)] = (label is not None and label or "", host, port)
-        if client_address is not None:
-            print "%s: subscription of '%s:%d (%s)' by '%s:%d'" % (
-                datetime.now().strftime("%x %X"), host, port, label, client_address[0],
-                client_address[1])
 
+        self.targets[(resolved_host, resolved_port)] = (label is not None and label or "", host, port)
+        print "%s: subscription of '%s:%d (%s)' by %r" % (
+                datetime.now().strftime("%x %X"), resolved_host, resolved_port, label, client_address)
+
+        if client_address is not None:
             message = OSCMessage("/OK")
             message.appendTypedArg("subscribe", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
+            message.appendTypedArg(resolved_host, "s")
+            message.appendTypedArg(resolved_port, "i")
             self.socket.sendto(message.encode_osc(), (client_host, client_port))
             print "sendto", client_host, client_port
         else:
@@ -425,27 +425,30 @@ class Chaosc(UDPServer):
     def __unsubscribe(self, host, port, client_address=None):
 
         client_host, client_port = resolve_host(client_address[0], client_address[1], self.address_family)
-        resolved_host, resolved_port = resolve_host(host, port, self.address_family)
+        if client_address is not None:
+            resolved_host, resolved_port = resolve_host(host, port, self.address_family)
 
         try:
             label = self.targets.pop((resolved_host, resolved_port))
         except KeyError, e:
             print "%s: '%s:%d' was not subscribed" % (datetime.now().strftime("%x %X"), host, port)
-            message = OSCMessage("/Failed")
-            message.appendTypedArg("unsubscribe", "s")
-            message.appendTypedArg("not subscribed", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
-            self.sendto(message, (client_host, client_port))
+            if client_address is not None:
+                message = OSCMessage("/Failed")
+                message.appendTypedArg("unsubscribe", "s")
+                message.appendTypedArg("not subscribed", "s")
+                message.appendTypedArg(host, "s")
+                message.appendTypedArg(port, "i")
+                self.sendto(message, (client_host, client_port))
         else:
             print "%s: unsubscription of '%s:%d (%s)' by '%s:%d'" % (
                 datetime.now().strftime("%x %X"), host, port, label, client_host,
                 client_port)
-            message = OSCMessage("/OK")
-            message.appendTypedArg("unsubscribe", "s")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
-            self.sendto(message, (client_host, client_port))
+            if client_address is not None:
+                message = OSCMessage("/OK")
+                message.appendTypedArg("unsubscribe", "s")
+                message.appendTypedArg(host, "s")
+                message.appendTypedArg(port, "i")
+                self.sendto(message, (client_host, client_port))
 
 
     def __subscription_handler(self, addr, typetags, args, client_address):

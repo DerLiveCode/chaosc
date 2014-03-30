@@ -41,7 +41,6 @@ def select_family(args):
 
 
 def resolve_host(host, port, family):
-    print("family", family)
     flags = socket.AI_ALL | socket.AI_CANONNAME | socket.AI_ADDRCONFIG
     if family == socket.AF_INET6:
         flags |= socket.AI_V4MAPPED
