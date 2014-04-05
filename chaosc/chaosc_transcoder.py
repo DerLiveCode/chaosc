@@ -109,14 +109,15 @@ class ChaoscTranscoder(SimpleOSCServer):
 
 
 def main():
-    a = create_arg_parser("chaosc_transcoder")
-    add_main_group(a)
-    add_chaosc_group(a)
-    add_subscriber_group(a, "chaosc_transcoder")
-    add_forward_group(a)
-    add_transcoding_group(a)
+    arg_parser = ArgParser("chaosc_transcoder")
+    arg_parser.add_global_group()
+    arg_parser.add_client_group()
+    arg_parser.add_chaosc_group()
+    arg_parser.add_subscriber_group()
+    arg_parser.add_forward_group()
+    arg_parser.add_transcoding_group()
 
-    args = finalize_arg_parser(a)
+    args = a.finalize()
 
     if not os.path.isdir(args.transcoding_dir):
         raise ValueError("Error: %r is not a directory" % args.transcoding_dir)

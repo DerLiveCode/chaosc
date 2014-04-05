@@ -10,7 +10,7 @@ from setuptools import find_packages, setup, Extension
 from Cython.Distutils import build_ext
 
 ext_modules = [
-    Extension("chaosc.c_osc_lib", ["chaosc/c_osc_lib.pyx"])
+    Extension("chaosc.c_osc_lib", ["chaosc/c_osc_lib.pyx"], extra_compile_args=["-O2", "-pipe", "-march=native"])
 ]
 
 if sys.version_info >= (3,):

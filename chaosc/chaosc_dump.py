@@ -42,7 +42,7 @@ from datetime import datetime
 from chaosc.simpleOSCServer import SimpleOSCServer
 import chaosc._version
 
-from chaosc.argparser_groups import *
+from chaosc.argparser_groups import ArgParser
 
 class ChaoscDump(SimpleOSCServer):
     """OSC filtering/transcoding middleware
@@ -82,11 +82,12 @@ class ChaoscDump(SimpleOSCServer):
 
 
 def main():
-    a = create_arg_parser("chaosc_dump")
-    add_main_group(a)
-    add_chaosc_group(a)
-    add_subscriber_group(a, "chaosc_dump")
-    args = finalize_arg_parser(a)
+    arg_parser = ArgParser("chaosc_dump")
+    arg_parser.add_global_group()
+    arg_parser.add_client_group()
+    arg_parser.add_chaosc_group()
+    arg_parser.add_subscriber_group()
+    args = arg_parser.finalize()
 
     server = ChaoscDump(args)
     atexit.register(server.unsubscribe_me)

@@ -40,7 +40,7 @@ from datetime import datetime
 from chaosc.simpleOSCServer import SimpleOSCServer
 
 import chaosc._version
-from chaosc.argparser_groups import *
+from chaosc.argparser_groups import ArgParser
 from chaosc.lib import resolve_host
 
 
@@ -169,13 +169,14 @@ class FilterOSCServer(SimpleOSCServer):
 
 
 def main():
-    arg_parser = create_arg_parser("chaosc_filter")
-    add_main_group(arg_parser)
-    add_chaosc_group(arg_parser)
-    add_subscriber_group(arg_parser, "chaosc_filter")
-    add_forward_group(arg_parser)
-    add_filtering_group(arg_parser)
-    args = finalize_arg_parser(arg_parser)
+    arg_parser = ArgParser("chaosc_filter")
+    arg_parser.add_global_group()
+    arg_parser.add_client_group()
+    arg_parser.add_chaosc_group
+    arg_parser.add_subscriber_group()
+    arg_parser.add_forward_group
+    arg_parser.add_filtering_group
+    args = arg_parser.finalize()
 
     server = FilterOSCServer(args)
     atexit.register(server.unsubscribe_me)

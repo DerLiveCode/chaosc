@@ -82,13 +82,12 @@ class SimpleOSCServer(UDPServer):
         self.address_family = args.address_family
 
         self.args = args
-        self.own_address = own_host, own_port = resolve_host(args.own_host, args.own_port, self.address_family)
+        self.own_address = client_host, client_port = resolve_host(args.client_host, args.client_port, self.address_family, socket.AI_PASSIVE)
         self.chaosc_address = chaosc_host, chaosc_port = resolve_host(args.chaosc_host, args.chaosc_port, self.address_family)
 
-        print "%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), own_host, own_port)
+        print "%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), client_host, client_port)
         UDPServer.__init__(self, self.own_address, OSCRequestHandler)
 
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
         self.socket.setblocking(0)
         if hasattr(args, "subscribe") and args.subscribe:
             self.subscribe_me()

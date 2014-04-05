@@ -28,35 +28,9 @@ import termios, tty
 
 import asyncore, socket
 
-from chaosc.argparser_groups import *
+from chaosc.argparser_groups import ArgParser
 
 import chaosc._version
-
-class ReplayThread(Thread):
-    def __init__(self, recorder):
-        super(ReplayThread, self).__init__()
-        self.recorder = recorder
-        self.playing = True
-
-    def run(self):
-        print "Replay started"
-        playstart = time.time()
-        current_packet = 0
-        if not self.recorder.data:
-            print "Replay ended"
-            self.playing = False
-            return
-
-        while self.playing:
-            print "pass"
-            try:
-                timestamp, packet = self.recorder.data[current_packet]
-                if time.time() - playstart <= 0.0:
-                    self.recorder.socket.sendto(packet, self.recorder.chaosc_address)
-                current_packet +=1
-            except IndexError, e:
-                print "Replay ended"
-                self.playing = False
 
 class ControlThread(Thread):
     def __init__(self, recorder):
@@ -90,23 +64,20 @@ class ControlThread(Thread):
         while self.running:
             time.sleep(0.5)
             char = inkey()
-            if char == "p":
-                self.recorder.play()
-            elif char == "h":
+            print repr(char)
+            if char == "h":
                 self.recorder.help()
             elif char == "r":
                 self.recorder.record()
             elif char == "b":
                 self.recorder.stop()
-            elif char == "s":
-                try:
-                    self.recorder.save()
-                except Exception, e:
-                    print e
-            elif char == "q":
+            elif char == " ":
+                self.recorder.stop()
+            elif char in ("q", "\x03"):
                 termios.tcsetattr(self.fd, termios.TCSADRAIN, self.remember_attributes)
                 sys.stdout.write("\033[1G")
                 os._exit(0)
+
 
 class OSCRecorder(SimpleOSCServer):
 
@@ -115,7 +86,7 @@ class OSCRecorder(SimpleOSCServer):
         self.args = args
         self.chaosc_address = (args.chaosc_host, args.chaosc_port)
         self.token = args.authenticate
-        self.path = args.record_file
+        self.path = args.record_path
         self.mode = 0 # 0=ignore, 1=record, 2 = play
         self.lock = Lock()
         self.thread = None
@@ -140,27 +111,16 @@ class OSCRecorder(SimpleOSCServer):
         print
         print "press h to get this help"
         print "press q to quit"
-        print "press p to play"
+        #print "press p to play"
         print "press b for stop"
         print "press r to start record"
         print
         print "Current mode: %s..." % self.modeName()
 
-    def play(self):
-        print "Started replay..."
-        self.lock.acquire()
-        self.mode = 2
-        self.thread = ReplayThread(self)
-        self.thread.start()
-        self.lock.release()
-
     def record(self):
         print "Started recording..."
         self.lock.acquire()
-        if self.mode == 2:
-            self.thread.playing = False
-            self.thread.join()
-            self.thread = None
+
         self.log_file = open(self.path, "wb")
         self.mode = 1
         self.rec_start = time.time()
@@ -168,20 +128,16 @@ class OSCRecorder(SimpleOSCServer):
         self.lock.release()
 
     def stop(self):
-        self.lock.acquire()
+
         if self.mode == 1:
+            self.lock.acquire()
             self.rec_end = time.time()
             self.log_file.write("end: %f\n" % self.rec_end)
             self.log_file.close()
+            self.mode = 0
+            self.lock.release()
 
-        if self.mode == 2:
-            self.thread.playing = False
-            self.thread.join()
-            self.thread = None
-
-        self.mode = 0
         print "stopped..."
-        self.lock.release()
 
 
     def quit(self):
@@ -210,17 +166,15 @@ class OSCRecorder(SimpleOSCServer):
 
 
 def main():
-    arg_parser = create_arg_parser("chaosc_recorder")
-    main_group = add_main_group(arg_parser)
-    main_group.add_argument('-r', '--record_file',
-        default="chaosc_recorder.chaosc", help='path to store the recorded data')
-    add_chaosc_group(arg_parser)
-    add_subscriber_group(arg_parser, "chaosc_recorder")
-    args = finalize_arg_parser(arg_parser)
+    arg_parser = ArgParser("chaosc_recorder")
+    arg_parser.add_global_group()
+    arg_parser.add_client_group()
+    arg_parser.add_recording_group()
+    arg_parser.add_chaosc_group()
+    arg_parser.add_subscriber_group()
+    args = arg_parser.finalize()
 
     server = OSCRecorder(args)
-
-
     server.serve_forever()
 
 

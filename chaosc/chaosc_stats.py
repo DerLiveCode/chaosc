@@ -31,7 +31,7 @@ except ImportError, e:
     print e
     from chaosc.osc_lib import decode_osc
 
-from chaosc.argparser_groups import *
+from chaosc.argparser_groups import ArgParser
 from collections import defaultdict
 
 from operator import itemgetter
@@ -51,12 +51,14 @@ class OSCAnalyzer(object):
                 arg_names = arg_names.split(", ")
                 self.annotations[regex] = (typetags, arg_names)
 
+
     def get_annotation(self, osc_address):
         for key, value in self.annotations.iteritems():
             res = key.match(osc_address)
             if res:
                 return value
         return None
+
 
     def loadFile(self):
         for line in open(self.args.record_path, "rb"):
@@ -71,6 +73,7 @@ class OSCAnalyzer(object):
                 timestamp, packet = line.split(": ")
                 osc_address, typetags, args = decode_osc(packet, 0, len(packet))
                 self.data.append((time, osc_address, typetags, args))
+
 
     def analyze(self):
         per_address = defaultdict(list)
@@ -102,12 +105,10 @@ class OSCAnalyzer(object):
                 print "            Median: %r" % median
 
 def main():
-    arg_parser = create_arg_parser("chaosc_stats")
-    main_group = arg_parser.add_argument_group("main arguments", "record file path and other useful flags")
-    main_group.add_argument('-r', "--record_path", default="chaosc_recorder.chaosc")
-    main_group.add_argument('-A', "--annotation_file", default="annotations.py",
-        help="the file with descriptions with the structure of OSCMessages, default = 'annotations_config'")
-    args = finalize_arg_parser(arg_parser)
+    arg_parser = ArgParser("chaosc_stats")
+    arg_parser.add_recording_group()
+    arg_parser.add_stats_group()
+    args = arg_parser.finalize()
 
     analyzer = OSCAnalyzer(args)
     analyzer.loadFile()

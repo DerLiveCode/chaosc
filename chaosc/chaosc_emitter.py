@@ -32,7 +32,7 @@ from chaosc.lib import resolve_host
 
 from multiprocessing import Pool
 
-from chaosc.argparser_groups import *
+from chaosc.argparser_groups import ArgParser
 
 
 class Runner(object):
@@ -103,11 +103,12 @@ class Runner(object):
 
 
 def main():
-    arg_parser = create_arg_parser("chaosc_ts")
-    main_group = add_main_group(arg_parser)
-    add_chaosc_group(arg_parser)
+    arg_parser = ArgParser("chaosc_emitter")
+    arg_parser.add_global_group()
+    arg_parser.add_client_group()
+    arg_parser.add_chaosc_group()
 
-    args = finalize_arg_parser(arg_parser)
+    args = arg_parser.finalize()
 
     runner = Runner(args)
     runner()

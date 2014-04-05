@@ -25,6 +25,7 @@ from __future__ import absolute_import
 __all__ = ["statlist", "resolve_host"]
 
 import socket
+import ConfigParser
 
 def statlist():
     """helper 2-item list factory for defaultdicts
@@ -40,12 +41,11 @@ def select_family(args):
         args.address_family = socket.AF_INET6
 
 
-def resolve_host(host, port, family):
-    flags = socket.AI_ALL | socket.AI_CANONNAME | socket.AI_ADDRCONFIG
+def resolve_host(host, port, family, flags=0):
+    flags |= socket.AI_ADDRCONFIG
     if family == socket.AF_INET6:
-        flags |= socket.AI_V4MAPPED
+        flags |= socket.AI_ALL | socket.AI_V4MAPPED
     return socket.getaddrinfo(host, port, family, socket.SOCK_DGRAM, 0, flags)[-1][4][:2]
-
 
 
 def fix_host(ipv4_only, name):
