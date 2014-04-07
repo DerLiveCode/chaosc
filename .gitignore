@@ -1,7 +1,10 @@
+RELEASE-VERSION
+
 *.py[cod]
 
 # C extensions
 *.so
+*.c
 
 # Packages
 *.egg
