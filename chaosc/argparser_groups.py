@@ -186,9 +186,8 @@ class ArgParser(object):
         config_parser = ConfigParser.ConfigParser()
         path = os.path.expanduser(self.args.defaults_file)
         if not os.path.isfile(path):
-            self.add_defaults()
-            print self.args
             return
+
         config_parser.read(path)
 
         if not config_parser.has_section(self.prog_name):
