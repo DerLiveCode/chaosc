@@ -78,10 +78,6 @@ class Chaosc(UDPServer):
 
         self.authenticate = args.authenticate
 
-        self.socket.setsockopt(socket.SOL_SOCKET,
-            socket.SO_SNDBUF, self.max_packet_size)
-        self.socket.setsockopt(socket.SOL_SOCKET,
-            socket.SO_RCVBUF, self.max_packet_size)
         self.socket.setblocking(0)
 
         self.targets = dict()
@@ -226,11 +222,11 @@ class Chaosc(UDPServer):
 
     def __load_subscriptions(self):
         """Loads predefined subcriptions from a file in given config directory
-
-        :param path: the directory in which the targets.config file resists
-        :type path: str
         """
-        lines = open(self.args.subscription_file).readlines()
+
+        now = datetime.now().strftime("%x %X")
+
+        lines = open(os.path.expanduser(self.args.subscription_file)).readlines()
         for line in lines:
             data = line.strip("\n").split(";")
             args = dict([arg.split("=") for arg in data])
@@ -327,7 +323,7 @@ class Chaosc(UDPServer):
             try:
                 sendto(packet, address)
             except socket.error, error:
-                print "send error occured", address, error
+                #print "send error occured", address, error
                 pass
 
 
@@ -336,14 +332,16 @@ class Chaosc(UDPServer):
 
         response = OSCBundle()
         for (target_host, target_port), (label, host, port) in self.targets.iteritems():
-            print "target", target_host, target_port, label, host, port
             message = OSCMessage("/li")
-            message.appendTypedArg(host, "s")
-            message.appendTypedArg(port, "i")
+            message.appendTypedArg(target_host, "s")
+            message.appendTypedArg(target_port, "i")
             message.appendTypedArg(label, "s")
             response.append(message)
 
-        self.socket.sendto(response.encode_osc(), client_address)
+        try:
+            self.socket.sendto(response.encode_osc(), client_address)
+        except socket.error:
+                pass
 
 
     def __authorize(self, authenticate):
@@ -391,7 +389,10 @@ class Chaosc(UDPServer):
             response.appendTypedArg("not authorized", "s")
             response.appendTypedArg(host, "s")
             response.appendTypedArg(port, "i")
-            self.sendto(response, client_address)
+            try:
+                self.sendto(response, client_address)
+            except socket.error:
+                pass
             return
 
         label = len(args) == 4 and args[3] or None
@@ -412,7 +413,10 @@ class Chaosc(UDPServer):
             response.appendTypedArg("subscribe", "s")
             response.appendTypedArg(host, "s")
             response.appendTypedArg(port, "i")
-            self.socket.sendto(response.encode_osc(), client_address)
+            try:
+                self.socket.sendto(response.encode_osc(), client_address)
+            except socket.error:
+                pass
             print "{}: subscription of '{}:{} ({})' by '{}'".format(
                 now, host, port, label, client_address)
 
@@ -431,7 +435,7 @@ class Chaosc(UDPServer):
         try:
             self.__authorize(args[2])
         except ValueError, e:
-            print "{}: subscription failed of host '{}:{}' - not authorized".format(
+            print "{}: unsubscription failed of host '{}:{}' - not authorized".format(
                 now, host, port)
             response = OSCMessage("/Failed")
             response.appendTypedArg("unsubscribe", "s")
@@ -449,8 +453,11 @@ class Chaosc(UDPServer):
             response.appendTypedArg("not subscribed", "s")
             response.appendTypedArg(host, "s")
             response.appendTypedArg(port, "i")
-            self.socket.sendto(response.encode_osc(), client_address)
-            print "{}: subscription by {} failed of target '{}:{}' - not subscribed".format(
+            try:
+                self.socket.sendto(response.encode_osc(), client_address)
+            except socket.error:
+                pass
+            print "{}: unsubscription by {} failed of target '{}:{}' - not subscribed".format(
                 now, client_address, host, port)
         else:
             print "{}: unsubscription of {}:{} by {}".format(
@@ -459,7 +466,10 @@ class Chaosc(UDPServer):
             response.appendTypedArg("unsubscribe", "s")
             response.appendTypedArg(host, "s")
             response.appendTypedArg(port, "i")
-            self.socket.sendto(response.encode_osc(), client_address)
+            try:
+                self.socket.sendto(response.encode_osc(), client_address)
+            except socket.error:
+                pass
 
 
 
