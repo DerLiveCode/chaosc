@@ -225,20 +225,24 @@ class Chaosc(UDPServer):
         """
 
         now = datetime.now().strftime("%x %X")
-
-        lines = open(os.path.expanduser(self.args.subscription_file)).readlines()
-        for line in lines:
-            data = line.strip("\n").split(";")
-            args = dict([arg.split("=") for arg in data])
-            host = args["host"]
-            port = int(args["port"])
-            label = args["label"]
-            try:
-                self.__subscribe(host, port, label)
-            except KeyError, e:
-                print "%s: subscription failed for %s:%d (%s) by config - already subscribed" % (now, host, port, label)
-            else:
-                print "%s: subscription of %s:%d (%s) by config" % (now, host, port, label)
+        path = os.path.expanduser(self.args.subscription_file)
+        try:
+            lines = open(path).readlines()
+        except IOError, e:
+            print "%s: Error:: subscription file %r not found" % (now, path)
+        else:
+            for line in lines:
+                data = line.strip("\n").split(";")
+                args = dict([arg.split("=") for arg in data])
+                host = args["host"]
+                port = int(args["port"])
+                label = args["label"]
+                try:
+                    self.__subscribe(host, port, label)
+                except KeyError, e:
+                    print "%s: subscription failed for %s:%d (%s) by config - already subscribed" % (now, host, port, label)
+                else:
+                    print "%s: subscription of %s:%d (%s) by config" % (now, host, port, label)
 
 
     def __save_subscriptions(self):
