@@ -53,6 +53,7 @@ class ChaoscDump(SimpleOSCServer):
 
         print "%s: starting up chaosc_dump-%s..." % (datetime.now().strftime("%x %X"), chaosc._version.__version__)
         SimpleOSCServer.__init__(self, args)
+        self.count = 0
 
 
     def dispatchMessage(self, osc_address, typetags, args, packet,
@@ -74,11 +75,17 @@ class ChaoscDump(SimpleOSCServer):
         :param client_address: (host, port) of the requesting client
         :type client_address: tuple
         """
+        color = "\033[0;0m"
+        if "merle" in osc_address:
+            print "\033[31;1m%s = %s" % (osc_address[7:], ", ".join(map(str, args)))
+        elif "uwe" in osc_address:
+            print "%s\033[32;1m%s = %s" % (" " * 25, osc_address[5:], ", ".join(map(str, args)))
+        elif "bjoern" in osc_address:
+            print "%s\033[34;1m%s = %s" % (" " * 50, osc_address[8:], ", ".join(map(str, args)))
+        
+        self.count += 1
 
-        print "%s: osc_address=%r, typetags=%r, arguments=%r" % (
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            osc_address, typetags, args)
-
+        
 
 
 def main():
