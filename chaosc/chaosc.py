@@ -26,10 +26,11 @@ import os, os.path
 import socket
 import sys
 
+
 from collections import defaultdict
 from datetime import datetime
 from SocketServer import UDPServer, DatagramRequestHandler
-from time import time
+from time import time, sleep
 from types import FunctionType, MethodType
 
 import chaosc._version
@@ -351,8 +352,14 @@ class Chaosc(UDPServer):
 
 
     def __subscribe(self, host, port, label=None):
-
-        target_host, target_port = resolve_host(host, port, self.address_family)
+        while 1:
+            try:
+                target_host, target_port = resolve_host(host, port, self.address_family)
+            except socket.gaierror:
+                logger.info("no address associated with hostname. waiting now 10 sec and trying again...")
+                sleep(10)
+            else:
+                break
 
         if (target_host, target_port) in self.targets:
             raise KeyError("already subscribed")
