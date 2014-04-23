@@ -356,7 +356,7 @@ class Chaosc(UDPServer):
             try:
                 target_host, target_port = resolve_host(host, port, self.address_family)
             except socket.gaierror:
-                logger.info("no address associated with hostname. waiting now 10 sec and trying again...")
+                logger.info("no address associated with hostname %r. waiting now 10 sec and trying again...", host)
                 sleep(10)
             else:
                 break
