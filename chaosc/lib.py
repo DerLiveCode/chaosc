@@ -24,8 +24,17 @@ from __future__ import absolute_import
 
 __all__ = ["statlist", "resolve_host"]
 
+import logging
 import socket
 import ConfigParser
+import os.path
+
+logger = logging.getLogger('simple_example')
+logger.setLevel(logging.DEBUG)
+fh = logging.FileHandler(os.path.expanduser("~/.chaosc/chaosc.log"))
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
+
 
 def statlist():
     """helper 2-item list factory for defaultdicts
