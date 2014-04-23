@@ -352,14 +352,11 @@ class Chaosc(UDPServer):
 
 
     def __subscribe(self, host, port, label=None):
-        while 1:
-            try:
-                target_host, target_port = resolve_host(host, port, self.address_family)
-            except socket.gaierror:
-                logger.info("no address associated with hostname %r. waiting now 10 sec and trying again...", host)
-                sleep(10)
-            else:
-                break
+        try:
+            target_host, target_port = resolve_host(host, port, self.address_family)
+        except socket.gaierror:
+            logger.info("no address associated with hostname %r. using unresolved hostname for subscription", host)
+            target_host, target_port = host, port
 
         if (target_host, target_port) in self.targets:
             raise KeyError("already subscribed")
@@ -368,10 +365,13 @@ class Chaosc(UDPServer):
 
 
     def __unsubscribe(self, host, port):
-
-        target_host, target_port = resolve_host(host, port, self.address_family)
-
-        label = self.targets.pop((target_host, target_port))
+        try:
+            target_host, target_port = resolve_host(host, port, self.address_family)
+        except socket.gaierror:
+            logger.info("no address associated with hostname %r. using unresolved hostname for unsubscription", host)
+            label = self.targets.pop((host, port))
+        else:
+            label = self.targets.pop((target_host, target_port))
 
 
     def __subscription_handler(self, addr, typetags, args, client_address):
