@@ -91,6 +91,8 @@ class Chaosc(UDPServer):
         self.add_handler('/unsubscribe', self.__unsubscription_handler)
         self.add_handler('/list', self.__list_handler)
         self.add_handler('/save', self.__save_subscriptions_handler)
+        
+        self.blacklist = ["tommy", "192.168.1.32", "mario", "192.168.1.31"]
 
         if args.subscription_file:
             self.__load_subscriptions()
@@ -326,8 +328,11 @@ class Chaosc(UDPServer):
         now = time()
 
         sendto = self.socket.sendto
-
+        
         for address in self.targets.iterkeys():
+            if address[0] in self.blacklist:
+                continue
+
             try:
                 sendto(packet, address)
             except socket.error, error:
