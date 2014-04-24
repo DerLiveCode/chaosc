@@ -82,10 +82,9 @@ class ChaoscDump(SimpleOSCServer):
             print "%s\033[32;1m%s = %s" % (" " * 25, osc_address[5:], ", ".join(map(str, args)))
         elif "bjoern" in osc_address:
             print "%s\033[34;1m%s = %s" % (" " * 50, osc_address[8:], ", ".join(map(str, args)))
-        
+
         self.count += 1
 
-        
 
 
 def main():

@@ -29,7 +29,7 @@ import socket
 import sys
 
 from datetime import datetime
-from chaosc.lib import fix_host, select_family
+from chaosc.lib import fix_host, select_family, logger
 
 
 class ArgParser(object):
@@ -172,10 +172,9 @@ class ArgParser(object):
             pass
 
         now = datetime.now().strftime("%x %X")
-        print "%s: configuration:" % now
-        for item in self.args.__dict__.iteritems():
-            print "    %s: %r" % item
-        print
+        logger.info("%s: configuration:", now)
+        for key, value in self.args.__dict__.iteritems():
+            logger.info("    %s: %r", key, value)
 
         return self.args
 
