@@ -25,7 +25,7 @@ import argparse
 import os, os.path
 import socket
 import sys
-
+import logging
 
 from collections import defaultdict
 from datetime import datetime
@@ -33,10 +33,12 @@ from SocketServer import UDPServer, DatagramRequestHandler
 from time import time, sleep
 from types import FunctionType, MethodType
 
+
 import chaosc._version
 
 from chaosc.argparser_groups import ArgParser
 from chaosc.lib import resolve_host, statlist, logger
+
 
 try:
     from chaosc.c_osc_lib import (OSCBundle, OSCMessage,
@@ -47,6 +49,10 @@ except ImportError:
 
 
 __all__ = ["main",]
+
+fh = logging.FileHandler(os.path.expanduser("~/.chaosc/chaosc.log"))
+fh.setLevel(logging.DEBUG)
+logger.addHandler(fh)
 
 
 class Chaosc(UDPServer):

@@ -29,11 +29,9 @@ import socket
 import ConfigParser
 import os.path
 
-logger = logging.getLogger('simple_example')
+logger = logging.getLogger('chaosc')
 logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler(os.path.expanduser("~/.chaosc/chaosc.log"))
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
+logger.addHandler(logging.NullHandler())
 
 
 def statlist():
