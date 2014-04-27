@@ -24,6 +24,7 @@ from __future__ import absolute_import
 
 import argparse
 import ConfigParser
+import logging
 import os.path
 import socket
 import sys
@@ -77,6 +78,8 @@ class ArgParser(object):
 
     def add_global_group(self):
         global_group = self.add_argument_group('global', 'flags relevant for specifying main features and parameters')
+        self.add_argument(global_group, '-B', "--background", action="store_true",
+            help='if the tool runs in background as a daemon. turns off logging to stdout/stderr')
         self.add_argument(global_group, '-d', "--defaults_file", default="~/.chaosc/chaosc.conf",
             help='the tool config file, defaults to "~/.chaosc/chaosc.conf"')
         self.add_argument(global_group, '-4', '--ipv4_only', action="store_true",
@@ -149,6 +152,16 @@ class ArgParser(object):
 
     def finalize(self):
         self.args = self.arg_parser.parse_args(sys.argv[1:])
+
+        fh = logging.FileHandler(os.path.expanduser("~/.chaosc/%s.log" % self.prog_name))
+        fh.setLevel(logging.DEBUG)
+        logger.addHandler(fh)
+
+        if not self.args.background:
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            logger.addHandler(ch)
+
         self._load_config_args()
 
         self._merge_config_with_cli()
@@ -170,6 +183,8 @@ class ArgParser(object):
             self.args.http_host = fix_host(self.args.ipv4_only, self.args.http_host)
         except AttributeError:
             pass
+
+
 
         now = datetime.now().strftime("%x %X")
         logger.info("%s: configuration:", now)
