@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2012-2013 Stefan Kögl
+# Copyright (C) 2012-2014 Stefan Kögl
 from __future__ import absolute_import
 
 
@@ -36,6 +36,7 @@ except ImportError:
     from chaosc.osc_lib  import OSCMessage
 
 from chaosc.argparser_groups import ArgParser
+from chaosc.lib import logger
 
 class OSCCTLServer(SimpleOSCServer):
     def __init__(self, args):
@@ -43,14 +44,13 @@ class OSCCTLServer(SimpleOSCServer):
 
         self.addMsgHandler("X", self.stats_handler)
 
-
         if "unsubscribe" == args.subparser_name:
             msg = OSCMessage("/unsubscribe")
             msg.appendTypedArg(args.host, "s")
             msg.appendTypedArg(args.port, "i")
             msg.appendTypedArg(args.authenticate, "s")
             self.sendto(msg, self.chaosc_address)
-            print "unsubscribe %r:%r from %r:%r" % (
+            logger.info("unsubscribe %r:%r from %r:%r",
                 args.host, args.port, args.chaosc_host, args.chaosc_port)
 
         elif "subscribe" == args.subparser_name:
@@ -61,7 +61,7 @@ class OSCCTLServer(SimpleOSCServer):
             if args.subscriber_label:
                 msg.appendTypedArg(args.subscriber_label, "s")
             self.sendto(msg, self.chaosc_address)
-            print "subscribe %r:%r to %r:%r" % (
+            logger.info("subscribe %r:%r to %r:%r",
                 args.host, args.port, args.chaosc_host, args.chaosc_port)
 
         elif "list" == args.subparser_name:
@@ -73,10 +73,13 @@ class OSCCTLServer(SimpleOSCServer):
             msg = OSCMessage("/save")
             msg.appendTypedArg(args.authenticate, "s")
             self.sendto(msg, self.chaosc_address)
+        elif "pause" == args.subparser_name:
+            msg = OSCMessage("/pause")
+            msg.appendTypedArg(args.pause_state, "i")
+            self.sendto(msg, self.chaosc_address)
         else:
             raise Exception("unknown command")
             sys.exit(1)
-
 
     def stats_handler(self, name, desc, messages, packet, client_address):
         if name == "#bundle":
@@ -88,6 +91,7 @@ class OSCCTLServer(SimpleOSCServer):
 
         sys.exit(0)
 
+
     def handle_error(self, request, client_address):
         """Handle an error gracefully.  May be overridden.
 
@@ -97,7 +101,7 @@ class OSCCTLServer(SimpleOSCServer):
         if sys.exc_info()[0] == SystemExit:
             os._exit(0)
         else:
-            print(sys.exc_info())
+            pass
 
 
 
@@ -143,8 +147,13 @@ def main():
     arg_parser.add_argument(parser_save, '-a', '--authenticate', type=str, default="sekret",
         help='token to authorize interaction with chaosc, default="sekret"')
 
-    result = arg_parser.finalize()
+    parser_pause = subparsers.add_parser('pause',
+        help='make save subscriptions to file')
+    arg_parser.add_argument(parser_pause, 'pause_state', metavar="pause_state", type=int,
+        help='1 means chaosc should stop serving packages, 0 means start serving packages')
 
+    result = arg_parser.finalize()
+    print result
 
     def exit():
         print "%s: the command seems to get no response - I'm dying now gracefully" % datetime.now().strftime("%x %X")
