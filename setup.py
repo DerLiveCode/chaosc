@@ -32,7 +32,6 @@ setup(
     install_requires=[
         "Cython",
         "pyserial",
-        "Sphinx",
         "numpy"],
 
     # installing unzipped
