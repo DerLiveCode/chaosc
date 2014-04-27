@@ -50,10 +50,6 @@ except ImportError:
 
 __all__ = ["main",]
 
-fh = logging.FileHandler(os.path.expanduser("~/.chaosc/chaosc.log"))
-fh.setLevel(logging.DEBUG)
-logger.addHandler(fh)
-
 
 class Chaosc(UDPServer):
     """A multi-unicast osc application level gateway
@@ -86,11 +82,13 @@ class Chaosc(UDPServer):
         self.socket.setblocking(0)
 
         self.targets = dict()
+        self.is_pause = False
 
         self.add_handler('/subscribe', self.__subscription_handler)
         self.add_handler('/unsubscribe', self.__unsubscription_handler)
         self.add_handler('/list', self.__list_handler)
         self.add_handler('/save', self.__save_subscriptions_handler)
+        self.add_handler('/pause', self.__toggle_pause_hander)
 
         if args.subscription_file:
             self.__load_subscriptions()
@@ -206,7 +204,8 @@ class Chaosc(UDPServer):
                 self.callbacks[osc_address](osc_address, typetags, args,
                     client_address)
             except KeyError:
-                self.__proxy_handler(packet, client_address)
+                if not self.is_pause:
+                    self.__proxy_handler(packet, client_address)
 
 
     def __str__(self):
@@ -223,6 +222,17 @@ class Chaosc(UDPServer):
             out += " (unbound)"
 
         return out
+
+    def __toggle_pause_hander(self, addr, typetags, args, client_address):
+        self.is_pause = bool(args[0])
+        response = OSCMessage("/OK")
+        response.appendTypedArg("pause", "s")
+        response.appendTypedArg(int(self.is_pause), "i")
+        try:
+            self.socket.sendto(response.encode_osc(), client_address)
+        except socket.error:
+            pass
+        logger.info("set pause to %r by %r", self.is_pause, client_address)
 
 
     def __load_subscriptions(self):
