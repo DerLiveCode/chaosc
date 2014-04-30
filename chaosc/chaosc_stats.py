@@ -43,8 +43,9 @@ class OSCAnalyzer(object):
         self.rec_start = None
         self.rec_end = None
         self.annotations = dict()
-        if args.annotation_dir:
-            for line in open(args.annotation_file):
+        self.error_count = 0
+        if args.annotation_file:
+            for line in open(os.path.expanduser(args.annotation_file)):
                 regex, typetags, arg_names = line[:-1].split("; ")
                 regex = re.compile(regex)
                 typetags = typetags.split(", ")
@@ -61,7 +62,7 @@ class OSCAnalyzer(object):
 
 
     def loadFile(self):
-        for line in open(self.args.record_path, "rb"):
+        for ix, line in enumerate(open(self.args.record_path, "rb")):
             if line == "\n" or line == "":
                 continue
             #print repr(line)
@@ -70,9 +71,14 @@ class OSCAnalyzer(object):
             elif line.startswith("end: "):
                 self.rec_end = float(line[5:-1])
             else:
-                timestamp, packet = line.split(": ")
-                osc_address, typetags, args = decode_osc(packet, 0, len(packet))
-                self.data.append((time, osc_address, typetags, args))
+                try:
+                    timestamp, packet = line.split(": ")
+                    packet = packet.strip(" ").strip("\n").strip("\r")
+                    osc_address, typetags, args = decode_osc(packet, 0, len(packet))
+                    self.data.append((time, osc_address, typetags, args))
+                except ValueError:
+                    self.error_count += 1
+                    pass
 
 
     def analyze(self):
@@ -82,6 +88,7 @@ class OSCAnalyzer(object):
 
         duration = self.rec_end - self.rec_start
         total = len(self.data)
+        print "error count", self.error_count
         print "Record Start: ", time.ctime(self.rec_start)
         print "Record End: ", time.ctime(self.rec_end)
         print "Duration: %f s" % (self.rec_end - self.rec_start)
@@ -93,11 +100,13 @@ class OSCAnalyzer(object):
             arg_total = len(args)
             print "    %r:" % address
             print "        Total: %r" % arg_total
+            print "OSCMessages/s: ", arg_total / duration
             for i in range(len(args[0])):
                 print "        Argument %d:" % i
                 if annotation is not None:
-                    print "            Typetag: %r" % annotation[0]
-                    print "            Argument name: %r" % annotation[1]
+                    type_tags, arg_names = annotation
+                    print "            Typetag: %r" % type_tags[i]
+                    print "            Argument name: %r" % arg_names[i]
                 print "            Min: %r" % min(args, key=itemgetter(i))[0]
                 print "            Max: %r" % max(args, key=itemgetter(i))[0]
                 print "            Mean: %r" % (sum([item[i] for item in args]) / float(arg_total))
@@ -106,6 +115,7 @@ class OSCAnalyzer(object):
 
 def main():
     arg_parser = ArgParser("chaosc_stats")
+    arg_parser.add_global_group()
     arg_parser.add_recording_group()
     arg_parser.add_stats_group()
     args = arg_parser.finalize()
