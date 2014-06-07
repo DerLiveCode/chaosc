@@ -19,10 +19,9 @@
 #
 # Copyright (C) 2012-2014 Stefan Kögl
 
-
 from __future__ import absolute_import
 
-__all__ = ["statlist", "resolve_host"]
+__all__ = ["logger", "select_family", "resolve_host"]
 
 import logging
 import socket
@@ -33,13 +32,8 @@ logger = logging.getLogger('chaosc')
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.NullHandler())
 
+fmt = logging.Formatter("%(asctime)s: %(message)s")
 
-def statlist():
-    """helper 2-item list factory for defaultdicts
-
-    :rtype: list
-    """
-    return [0, 0]
 
 def select_family(args):
     if args.ipv4_only:
@@ -53,13 +47,3 @@ def resolve_host(host, port, family, flags=0):
     if family == socket.AF_INET6:
         flags |= socket.AI_ALL | socket.AI_V4MAPPED
     return socket.getaddrinfo(host, port, family, socket.SOCK_DGRAM, 0, flags)[-1][4][:2]
-
-
-def fix_host(ipv4_only, name):
-    if ipv4_only:
-        if name.find(":") != -1:
-            if name == "::":
-                name = "0.0.0.0"
-            elif name == "::1":
-                name = "127.0.0.1"
-    return name

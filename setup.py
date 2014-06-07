@@ -1,13 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from distribute_setup import use_setuptools
-use_setuptools()
-
-from scripts.version import get_git_version
 import sys
 from setuptools import find_packages, setup, Extension
 from Cython.Distutils import build_ext
+from scripts.version import get_git_version
 
 ext_modules = [
     Extension("chaosc.c_osc_lib", ["chaosc/c_osc_lib.pyx"], extra_compile_args=["-O2", "-pipe", "-march=native"])
@@ -29,10 +26,7 @@ setup(
 
     exclude_package_data = {'': ['.gitignore']},
 
-    install_requires=[
-        "Cython",
-        "pyserial",
-        "numpy"],
+    install_requires=["Cython", "numpy"],
 
     # installing unzipped
     zip_safe = False,
@@ -42,13 +36,9 @@ setup(
     [console_scripts]
     chaosc = chaosc.chaosc:main
     chaosc_ctl = chaosc.chaosc_ctl:main
-    chaosc_emitter = chaosc.chaosc_emitter:main
-    chaosc_tt = chaosc.chaosc_tt:main
     chaosc_transcoder = chaosc.chaosc_transcoder:main
     chaosc_dump = chaosc.chaosc_dump:main
     chaosc_filter = chaosc.chaosc_filter:main
-    chaosc_serial_input = chaosc.chaosc_serial_input:main
-    chaosc_serial = chaosc.chaosc_serial:main
     chaosc_recorder = chaosc.chaosc_recorder:main
     chaosc_stats = chaosc.chaosc_stats:main
     """,

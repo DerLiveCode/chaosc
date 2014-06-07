@@ -33,18 +33,17 @@ from SocketServer import UDPServer, DatagramRequestHandler
 from time import time, sleep
 from types import FunctionType, MethodType
 
-
 import chaosc._version
 
 from chaosc.argparser_groups import ArgParser
-from chaosc.lib import resolve_host, statlist, logger
+from chaosc.lib import resolve_host, logger
 
 
 try:
-    from chaosc.c_osc_lib import (OSCBundle, OSCMessage,
+    from .c_osc_lib import (OSCBundle, OSCMessage,
         proxy_decode_osc, OSCError, OSCBundleFound)
 except ImportError:
-    from chaosc.osc_lib import (OSCBundle, OSCMessage, proxy_decode_osc,
+    from .osc_lib import (OSCBundle, OSCMessage, proxy_decode_osc,
         OSCError, OSCBundleFound)
 
 
@@ -67,12 +66,11 @@ class Chaosc(UDPServer):
         self.args = args
         server_address = host, port = resolve_host(args.chaosc_host, args.chaosc_port, self.address_family)
 
-        now = datetime.now().strftime("%x %X")
-        logger.info("%s: starting up chaosc-%s...",
-            now, chaosc._version.__version__)
+        logger.info("starting up chaosc-%s...",
+            chaosc._version.__version__)
         UDPServer.__init__(self, server_address, DatagramRequestHandler)
-        logger.info("%s: binding to %s:%r",
-            now, self.socket.getsockname()[0], server_address[1])
+        logger.info("binding to %s:%r",
+            self.socket.getsockname()[0], server_address[1])
 
 
         self.callbacks = {}
@@ -89,8 +87,6 @@ class Chaosc(UDPServer):
         self.add_handler('/list', self.__list_handler)
         self.add_handler('/save', self.__save_subscriptions_handler)
         self.add_handler('/pause', self.__toggle_pause_hander)
-        
-        self.blacklist = ["tommy", "192.168.1.32", "mario", "192.168.1.31"]
 
         if args.subscription_file:
             self.__load_subscriptions()
@@ -241,12 +237,11 @@ class Chaosc(UDPServer):
         """Loads predefined subcriptions from a file in given config directory
         """
 
-        now = datetime.now().strftime("%x %X")
         path = os.path.expanduser(self.args.subscription_file)
         try:
             lines = open(path).readlines()
         except IOError, e:
-            logger.error("%s: Error:: subscription file %r not found", now, path)
+            logger.error("Error:: subscription file %r not found", path)
         else:
             for line in lines:
                 data = line.strip("\n").split(";")
@@ -257,9 +252,9 @@ class Chaosc(UDPServer):
                 try:
                     self.__subscribe(host, port, label)
                 except KeyError, e:
-                    logger.error("%s: subscription failed for %s:%d (%s) by config - already subscribed". now, host, port, label)
+                    logger.error("subscription failed for %s:%d (%s) by config - already subscribed". host, port, label)
                 else:
-                    logger.info("%s: subscription of %s:%d (%s) by config", now, host, port, label)
+                    logger.info("subscription of %s:%d (%s) by config", host, port, label)
 
 
     def __save_subscriptions(self):
@@ -302,7 +297,6 @@ class Chaosc(UDPServer):
 
         Only unsubscription requests with valid authenticate will be granted.
         """
-        now = datetime.now().strftime("%x %X")
         try:
             self.__authorize(args[0])
         except ValueError, e:
@@ -330,19 +324,13 @@ class Chaosc(UDPServer):
             self.socket.sendto(response.encode_osc(), client_address)
 
 
-    def __proxy_handler(self, packet, client_address):
+    def __proxy_handler(self,  packet, client_address):
         """Sends incoming osc responses to subscribed receivers
         """
 
-        #print repr(packet), client_address
-        now = time()
-
         sendto = self.socket.sendto
-        
-        for address in self.targets.iterkeys():
-            if address[0] in self.blacklist:
-                continue
 
+        for address in self.targets.iterkeys():
             try:
                 sendto(packet, address)
             except socket.error, error:
@@ -405,8 +393,6 @@ class Chaosc(UDPServer):
         only subscription requests with valid host and authenticate will be granted.
         """
 
-        now = datetime.now().strftime("%x %X")
-
         host, port = args[:2]
         try:
             self.__authorize(args[2])
@@ -459,7 +445,6 @@ class Chaosc(UDPServer):
 
         Only unsubscription requests with valid host and authenticate will be granted.
         """
-        now = datetime.now().strftime("%x %X")
         host, port = args[:2]
         try:
             self.__authorize(args[2])
@@ -501,7 +486,6 @@ class Chaosc(UDPServer):
                 pass
 
 
-
 def main():
     """configures cli argument parser and starts chaosc"""
     arg_parser = ArgParser("chaosc")
@@ -517,3 +501,5 @@ def main():
     server = Chaosc(args)
     server.serve_forever()
 
+if __name__ == '__main__':
+    main()

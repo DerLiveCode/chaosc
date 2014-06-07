@@ -16,7 +16,3 @@
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Copyright (C) 2012-2013 Stefan Kögl
-
-from __future__ import absolute_import
-
-import chaosc._version

@@ -83,14 +83,13 @@ class OSCCTLServer(SimpleOSCServer):
 
     def stats_handler(self, name, desc, messages, packet, client_address):
         if name == "#bundle":
-            print "subscribed clients: {}".format(len(messages))
+            logger.info("subscribed client count: %d", len(messages))
             for osc_address, typetags, args in messages:
-                print "    host=%r, port=%r, label=%r" % (args[0], args[1], args[2])
+                logger.info("    host=%r, port=%r, label=%r", args[0], args[1], args[2])
         else:
-            print "chaosc returned status {} with args {}".format(name, messages)
+            logger.info("chaosc returned status %r with args %r", name, messages)
 
         sys.exit(0)
-
 
     def handle_error(self, request, client_address):
         """Handle an error gracefully.  May be overridden.
@@ -104,7 +103,6 @@ class OSCCTLServer(SimpleOSCServer):
             pass
 
 
-
 def main():
     arg_parser = ArgParser("chaosc_ctl")
     arg_parser.add_global_group()
@@ -116,7 +114,6 @@ def main():
 
     parser_subscribe = subparsers.add_parser('subscribe',
         help='subscribe a target')
-
     arg_parser.add_argument(parser_subscribe, 'host', metavar="url",
         type=str, help='hostname')
     arg_parser.add_argument(parser_subscribe, 'port', metavar="port",
@@ -125,7 +122,6 @@ def main():
         help='the string to use for subscription label, default="chaosc_transcoder"')
     arg_parser.add_argument(parser_subscribe, '-a', '--authenticate', type=str, default="sekret",
         help='token to authorize interaction with chaosc, default="sekret"')
-
 
     parser_unsubscribe = subparsers.add_parser('unsubscribe',
         help='unsubscribe a target')
@@ -137,7 +133,6 @@ def main():
         help='the string to use for subscription label, default="chaosc_transcoder"')
     arg_parser.add_argument(parser_unsubscribe, '-a', '--authenticate', type=str, default="sekret",
         help='token to authorize interaction with chaosc, default="sekret"')
-
 
     parser_stats = subparsers.add_parser('list',
         help='retrieve subscribed clients')
@@ -153,10 +148,9 @@ def main():
         help='1 means chaosc should stop serving packages, 0 means start serving packages')
 
     result = arg_parser.finalize()
-    print result
 
     def exit():
-        print "%s: the command seems to get no response - I'm dying now gracefully" % datetime.now().strftime("%x %X")
+        logger.info("the command seems to get no response - I'm dying now gracefully")
         os._exit(-1)
 
     killit = threading.Timer(6.0, exit)

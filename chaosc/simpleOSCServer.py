@@ -15,11 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with chaosc.  If not, see <http://www.gnu.org/licenses/>.
 #
-# Copyright (C) 2012-2013 Stefan Kögl
-
+# Copyright (C) 2012-2014 Stefan Kögl
 
 from __future__ import absolute_import
-
 
 import socket
 import sys
@@ -31,13 +29,14 @@ from types import TupleType, IntType, StringTypes, FunctionType, MethodType
 from SocketServer import UDPServer, DatagramRequestHandler, ThreadingUDPServer, ForkingUDPServer
 
 from chaosc import _version
+from chaosc.lib import logger
 
 try:
     from chaosc.c_osc_lib import *
 except ImportError:
     from chaosc.osc_lib import *
 
-from chaosc.lib import resolve_host, fix_host
+from chaosc.lib import resolve_host
 
 __all__ = ["SimpleOSCServer",]
 
@@ -67,7 +66,6 @@ class OSCRequestHandler(DatagramRequestHandler):
         pass
 
 
-
 class SimpleOSCServer(UDPServer):
     """A simple osc server/client to build upon our tools.
 
@@ -85,7 +83,7 @@ class SimpleOSCServer(UDPServer):
         self.own_address = client_host, client_port = resolve_host(args.client_host, args.client_port, self.address_family, socket.AI_PASSIVE)
         self.chaosc_address = chaosc_host, chaosc_port = resolve_host(args.chaosc_host, args.chaosc_port, self.address_family)
 
-        print "%s: binding to %s:%r" % (datetime.now().strftime("%x %X"), client_host, client_port)
+        logger.info("binding to %s:%r", client_host, client_port)
         UDPServer.__init__(self, self.own_address, OSCRequestHandler)
 
         self.socket.setblocking(0)
@@ -93,7 +91,6 @@ class SimpleOSCServer(UDPServer):
             self.subscribe_me()
 
         self.callbacks = {}
-
 
     def subscribe_me(self):
         """Use this procedure for a quick'n dirty subscription to your chaosc instance.
@@ -107,7 +104,7 @@ class SimpleOSCServer(UDPServer):
         :param token: token to get authorized for subscription
         :type token: str
         """
-        print "%s: subscribing to '%s:%d' with label %r" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1], self.args.subscriber_label)
+        logger.info("subscribing to '%s:%d' with label %r" % self.chaosc_address[0], self.chaosc_address[1], self.args.subscriber_label)
         msg = OSCMessage("/subscribe")
         msg.appendTypedArg(self.own_address[0], "s")
         msg.appendTypedArg(self.own_address[1], "i")
@@ -116,18 +113,16 @@ class SimpleOSCServer(UDPServer):
             msg.appendTypedArg(self.args.subscriber_label, "s")
         self.sendto(msg, self.chaosc_address)
 
-
     def unsubscribe_me(self):
         if self.args.keep_subscribed:
             return
 
-        print "%s: unsubscribing from '%s:%d'" % (datetime.now().strftime("%x %X"), self.chaosc_address[0], self.chaosc_address[1])
+        logger.info("unsubscribing from '%s:%d'" % self.chaosc_address[0], self.chaosc_address[1])
         msg = OSCMessage("/unsubscribe")
         msg.appendTypedArg(self.own_address[0], "s")
         msg.appendTypedArg(self.own_address[1], "i")
         msg.appendTypedArg(self.args.authenticate, "s")
         self.sendto(msg, self.chaosc_address)
-
 
     def addMsgHandler(self, address, callback):
         """Register a handler for an OSC-address
@@ -145,12 +140,10 @@ class SimpleOSCServer(UDPServer):
 
         self.callbacks[address] = callback
 
-
     def delMsgHandler(self, address):
         """Remove the registered handler for the given OSC-address
         """
         del self.callbacks[address]
-
 
     def dispatchMessage(self, address, tags, args, packet, client_address):
         """Dispatches messages to a callback or a default msg handler, which
@@ -165,13 +158,11 @@ class SimpleOSCServer(UDPServer):
         except KeyError:
             self.callbacks["X"](address, tags, args, packet, client_address)
 
-
     def close(self):
         """Stops serving requests, closes server (socket), closes used client
         """
         self.server_close()
         self.shutdown()
-
 
     def connect(self, address):
         """connects as a sending client to another server
@@ -182,7 +173,6 @@ class SimpleOSCServer(UDPServer):
         except socket.error, e:
             self.client_address = None
             raise OSCError("SocketError: %s" % str(e))
-
 
     def send(self, msg):
         """Sends a osc message or bundle the server conntected to by :meth:`connect`
@@ -197,7 +187,6 @@ class SimpleOSCServer(UDPServer):
                 raise e
             else:
                 raise OSCError("while sending to %s: %s" % (str(address), str(e)))
-
 
     def sendto(self, msg, address):
         """Send the given OSCMessage to the specified address.
@@ -224,7 +213,6 @@ class SimpleOSCServer(UDPServer):
             else:
                 raise OSCError("while sending to %s: %s" % (str(address), str(e)))
 
-
     def __eq__(self, other):
         """Compare function.
         """
@@ -233,12 +221,10 @@ class SimpleOSCServer(UDPServer):
 
         return cmp(self.socket._sock, other.socket._sock)
 
-
     def __ne__(self, other):
         """Compare function.
         """
         return not self.__eq__(other)
-
 
     def address(self):
         """Returns a (host,port) tuple of the local address this server is bound to,
@@ -248,5 +234,3 @@ class SimpleOSCServer(UDPServer):
             return self.socket.getsockname()
         except socket.error:
             return None
-
-
