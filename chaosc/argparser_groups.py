@@ -80,6 +80,8 @@ class ArgParser(object):
         global_group = self.add_argument_group('global', 'flags relevant for specifying main features and parameters')
         self.add_argument(global_group, '-L', "--logging", action="store_true",
             help='turns on logging')
+        self.add_argument(global_group, '-C', "--close_fds", action="store_true",
+                          help='closes all open file descriptors')
         self.add_argument(global_group, '-d', "--defaults_file", default="~/.chaosc/chaosc.conf",
             help='the tool config file, defaults to "~/.chaosc/chaosc.conf"')
         self.add_argument(global_group, '-4', '--ipv4_only', action="store_true",
@@ -167,7 +169,8 @@ class ArgParser(object):
             ch.setLevel(logging.DEBUG)
             ch.setFormatter(fmt)
             logger.addHandler(ch)
-        else:
+
+        if self.args.close_fds:
             print "close all fds"
             sys.stdin.close()
             sys.stderr.close()
